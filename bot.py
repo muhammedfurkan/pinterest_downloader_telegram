@@ -13,6 +13,7 @@ from pyquery import PyQuery as pq
 from telethon import TelegramClient, events
 from telethon.sync import TelegramClient
 from telethon.tl.custom import Button
+from telethon.tl.functions.users import GetFullUserRequest
 from telethon.tl.types import DocumentAttributeVideo
 
 logging.basicConfig(format='[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s',
@@ -42,6 +43,16 @@ You can use me like this:
 
 @bot.on(events.NewMessage(pattern="/start", func=lambda e: e.is_private))
 async def start(event):
+    j = await event.client(
+        GetFullUserRequest(
+            event.chat_id
+        )
+    )
+    mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.from_id})\nMesaj: {event.message.message}"
+    await bot.send_message(
+        "By_Azade",
+        mesaj
+    )
     if event:
         markup = bot.build_reply_markup([Button.url(
             text='📍 My Channel', url="t.me/KanalLinkleri"),
