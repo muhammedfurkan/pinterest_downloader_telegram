@@ -3,3 +3,4 @@ cryptg
 hachoir
 pyquery
 urllib3
+requests
