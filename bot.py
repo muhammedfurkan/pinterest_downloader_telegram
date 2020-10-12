@@ -58,60 +58,64 @@ async def vid(event):
         Button.url(
         text='👤 Developer', url="t.me/By_Azade")
     ])
-    x = await event.reply("`progressing...`")
     url = event.pattern_match.group(1)
-    get_url = get_download_url(url)
-    j = download_video(get_url)
-    thumb_image_path = TMP_DOWNLOAD_DIRECTORY + "thumb_image.jpg"
+    if url:
+        x = await event.reply("`progressing...`")
 
-    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
-        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
+        get_url = get_download_url(url)
+        j = download_video(get_url)
+        thumb_image_path = TMP_DOWNLOAD_DIRECTORY + "thumb_image.jpg"
 
-    metadata = extractMetadata(createParser(j))
-    duration = 0
+        if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
+            os.makedirs(TMP_DOWNLOAD_DIRECTORY)
 
-    if metadata.has("duration"):
-        duration = metadata.get('duration').seconds
-        width = 0
-        height = 0
-        thumb = None
+        metadata = extractMetadata(createParser(j))
+        duration = 0
 
-    if os.path.exists(thumb_image_path):
-        thumb = thumb_image_path
-    else:
-        thumb = await take_screen_shot(
-            j,
-            os.path.dirname(os.path.abspath(j)),
-            (duration / 2)
-        )
+        if metadata.has("duration"):
+            duration = metadata.get('duration').seconds
+            width = 0
+            height = 0
+            thumb = None
 
-    c_time = time.time()
-    await event.client.send_file(
-        event.chat_id,
-        j,
-        thumb=thumb,
-        caption="`For more` @KanalLinkleri",
-        force_document=False,
-        allow_cache=False,
-        reply_to=event.message.id,
-        buttons=markup,
-        attributes=[
-            DocumentAttributeVideo(
-                duration=duration,
-                w=width,
-                h=height,
-                round_message=False,
-                supports_streaming=True
+        if os.path.exists(thumb_image_path):
+            thumb = thumb_image_path
+        else:
+            thumb = await take_screen_shot(
+                j,
+                os.path.dirname(os.path.abspath(j)),
+                (duration / 2)
             )
-        ],
-        progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
-            progress(d, t, event, c_time, "trying to upload")
+
+        c_time = time.time()
+        await event.client.send_file(
+            event.chat_id,
+            j,
+            thumb=thumb,
+            caption="`For more` @KanalLinkleri",
+            force_document=False,
+            allow_cache=False,
+            reply_to=event.message.id,
+            buttons=markup,
+            attributes=[
+                DocumentAttributeVideo(
+                    duration=duration,
+                    w=width,
+                    h=height,
+                    round_message=False,
+                    supports_streaming=True
+                )
+            ],
+            progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
+                progress(d, t, event, c_time, "trying to upload")
+            )
         )
-    )
-    await event.delete()
-    await x.delete()
-    os.remove(TMP_DOWNLOAD_DIRECTORY + 'pinterest_video.mp4')
-    os.remove(thumb_image_path)
+        await event.delete()
+        await x.delete()
+        os.remove(TMP_DOWNLOAD_DIRECTORY + 'pinterest_video.mp4')
+        os.remove(thumb_image_path)
+    else:
+        await event.reply("`send me a link with command.` ")
 
 
 @bot.on(events.NewMessage(pattern="/pimg ?(.*)", func=lambda e: e.is_private))
@@ -121,29 +125,32 @@ async def img(event):
         Button.url(
         text='👤 Developer', url="t.me/By_Azade")
     ])
-    x = await event.reply("`Progressing...`")
     url = event.pattern_match.group(1)
-    get_url = get_download_url(url)
-    j = download_image(get_url)
+    if url:
+        x = await event.reply("`Progressing...`")
+        get_url = get_download_url(url)
+        j = download_image(get_url)
 
-    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
-        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
-    c_time = time.time()
-    await event.client.send_file(
-        event.chat_id,
-        j,
-        caption="`For more` @KanalLinkleri",
-        force_document=False,
-        allow_cache=False,
-        reply_to=event.message.id,
-        buttons=markup,
-        progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
-            progress(d, t, event, c_time, "trying to upload")
+        if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
+            os.makedirs(TMP_DOWNLOAD_DIRECTORY)
+        c_time = time.time()
+        await event.client.send_file(
+            event.chat_id,
+            j,
+            caption="`For more` @KanalLinkleri",
+            force_document=False,
+            allow_cache=False,
+            reply_to=event.message.id,
+            buttons=markup,
+            progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
+                progress(d, t, event, c_time, "trying to upload")
+            )
         )
-    )
-    await event.delete()
-    await x.delete()
-    os.remove(TMP_DOWNLOAD_DIRECTORY + 'pinterest_iamge.jpg')
+        await event.delete()
+        await x.delete()
+        os.remove(TMP_DOWNLOAD_DIRECTORY + 'pinterest_iamge.jpg')
+    else:
+        await event.reply("`send me a link with command.` ")
 
 
 async def run_command(command: List[str]) -> (str, str):
