@@ -48,7 +48,7 @@ async def start(event):
             event.chat_id
         )
     )
-    mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.from_id})\nMesaj: {event.message.message}"
+    mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
     await bot.send_message(
         "By_Azade",
         mesaj
@@ -70,7 +70,7 @@ async def vid(event):
                 event.chat_id
             )
         )
-        mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.from_id})\nMesaj: {event.message.message}"
+        mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
         await bot.send_message(
             "By_Azade",
             mesaj
@@ -149,7 +149,7 @@ async def img(event):
             event.chat_id
         )
     )
-    mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.from_id})\nMesaj: {event.message.message}"
+    mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
     await bot.send_message(
         "By_Azade",
         mesaj
