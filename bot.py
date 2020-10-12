@@ -287,3 +287,7 @@ def download_image(url):
     with open(TMP_DOWNLOAD_DIRECTORY + 'pinterest_iamge.jpg', 'wb') as photo_stream:
         photo_stream.write(image_to_download)
     return TMP_DOWNLOAD_DIRECTORY + 'pinterest_iamge.jpg'
+
+
+bot.start()
+bot.run_until_disconnected()
