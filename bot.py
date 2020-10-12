@@ -113,7 +113,7 @@ async def vid(event):
             event.chat_id,
             j,
             thumb=thumb,
-            caption="**Daha fazlası için**\n\n@KanalLinkleri",
+            caption="**@Pinterestdown_Robot** tarafından indirilmiştir",
             force_document=False,
             allow_cache=False,
             reply_to=event.message.id,
@@ -168,7 +168,7 @@ async def img(event):
         await event.client.send_file(
             event.chat_id,
             j,
-            caption="**Daha fazlası için**\n\n@KanalLinkleri",
+            caption="**@Pinterestdown_Robot** tarafından indirilmiştir",
             force_document=False,
             allow_cache=False,
             reply_to=event.message.id,
