@@ -16,20 +16,21 @@ from telethon.sync import TelegramClient
 from telethon.tl.custom import Button
 from telethon.tl.types import DocumentAttributeVideo
 
-logging.basicformat = '[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s',
-                    level = logging.WARNING)
-logger=logging.getLogger(__name__)
+logging.basicConfig(format='[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s',
+                    level=logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
-APP_ID=os.environ.get("APP_ID", None)
-APP_HASH=os.environ.get("APP_HASH", None)
-BOT_TOKEN=os.environ.get("BOT_TOKEN", None)
-TMP_DOWNLOAD_DIRECTORY=os.environ.get("TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/")
+APP_ID = os.environ.get("APP_ID", None)
+APP_HASH = os.environ.get("APP_HASH", None)
+BOT_TOKEN = os.environ.get("BOT_TOKEN", None)
+TMP_DOWNLOAD_DIRECTORY = os.environ.get(
+    "TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/")
 
-bot=TelegramClient('pinterestbot', APP_ID, APP_HASH).start(
-    bot_token = BOT_TOKEN)
+bot = TelegramClient('pinterestbot', APP_ID, APP_HASH).start(
+    bot_token=BOT_TOKEN)
 
-mesaj="""
+mesaj = """
 Hello I am Pinterest Image or Video Downloader Bot.
 
 You can use me like this:
@@ -39,23 +40,25 @@ You can use me like this:
 👉 **To download a image:** `/pimg pinterestURL`
 """
 
+
 @bot.on(events.NewMessage(pattern="/start", func=lambda e: e.is_private))
 async def start(event):
     if event:
-        markup= bot.build_reply_markup([Button.url(
+        markup = bot.build_reply_markup([Button.url(
             text='📍 My Channel', url="t.me/KanalLinkleri"),
             Button.url(
             text='👤 Developer', url="t.me/By_Azade")
         ])
         await bot.send_message(event.chat_id, mesaj, buttons=markup, link_preview=False)
 
+
 @bot.on(events.NewMessage(pattern="/pvid ?(.*)", func=lambda e: e.is_private))
 async def vid(event):
-    markup= bot.build_reply_markup([Button.url(
-            text='📍 My Channel', url="t.me/KanalLinkleri"),
-            Button.url(
-            text='👤 Developer', url="t.me/By_Azade")
-        ])
+    markup = bot.build_reply_markup([Button.url(
+        text='📍 My Channel', url="t.me/KanalLinkleri"),
+        Button.url(
+        text='👤 Developer', url="t.me/By_Azade")
+    ])
     x = await event.edit("`işlem yapılıyor...`")
     url = event.pattern_match.group(1)
     get_url = get_download_url(url)
@@ -112,15 +115,13 @@ async def vid(event):
     os.remove(thumb_image_path)
 
 
-
-
-@bot.on(events.NewMessage(pattern="/pimg ?(.*)",func=lambda e: e.is_private))
+@bot.on(events.NewMessage(pattern="/pimg ?(.*)", func=lambda e: e.is_private))
 async def img(event):
-    markup= bot.build_reply_markup([Button.url(
-            text='📍 My Channel', url="t.me/KanalLinkleri"),
-            Button.url(
-            text='👤 Developer', url="t.me/By_Azade")
-        ])
+    markup = bot.build_reply_markup([Button.url(
+        text='📍 My Channel', url="t.me/KanalLinkleri"),
+        Button.url(
+        text='👤 Developer', url="t.me/By_Azade")
+    ])
     x = await event.edit("`Progressing...`")
     url = event.pattern_match.group(1)
     get_url = get_download_url(url)
@@ -144,8 +145,6 @@ async def img(event):
     await event.delete()
     await x.delete()
     os.remove(Config.TMP_DOWNLOAD_DIRECTORY + 'pinterest_iamge.jpg')
-
-
 
 
 async def run_command(command: List[str]) -> (str, str):
@@ -260,7 +259,7 @@ async def progress(current, total, event, start, type_of_ps):
 # Function to get download url
 def get_download_url(link):
     # Make request to website
-    post_request=requests.post(
+    post_request = requests.post(
         'https://www.expertsphp.com/download.php', data={'url': link})
 
     # Get content from post request
