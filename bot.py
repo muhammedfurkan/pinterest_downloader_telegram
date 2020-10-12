@@ -31,13 +31,13 @@ bot = TelegramClient('pinterestbot', APP_ID, APP_HASH).start(
     bot_token=BOT_TOKEN)
 
 mesaj = """
-Hello I am Pinterest Image or Video Downloader Bot.
+Merhaba ben Pinterest üzerinden Video ve Resim indirebilen bir botum.
 
-You can use me like this:
+Şunları yapabilirim:
 
-👉 **To download a video:** `/pvid pinterestURL`
+👉 **Video indirmek için:** `/pvid pinterestURL`
 
-👉 **To download a image:** `/pimg pinterestURL`
+👉 **Resim indirebilmek için:** `/pimg pinterestURL`
 """
 
 
@@ -55,23 +55,33 @@ async def start(event):
     )
     if event:
         markup = bot.build_reply_markup([Button.url(
-            text='📍 My Channel', url="t.me/KanalLinkleri"),
+            text='📍 Kanal Linkleri', url="t.me/KanalLinkleri"),
             Button.url(
-            text='👤 Developer', url="t.me/By_Azade")
+            text='👤 Yapımcı', url="t.me/By_Azade")
         ])
         await bot.send_message(event.chat_id, mesaj, buttons=markup, link_preview=False)
 
 
 @bot.on(events.NewMessage(pattern="/pvid ?(.*)", func=lambda e: e.is_private))
 async def vid(event):
+    j = await event.client(
+        GetFullUserRequest(
+            event.chat_id
+        )
+    )
+    mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.from_id})\nMesaj: {event.message.message}"
+    await bot.send_message(
+        "By_Azade",
+        mesaj
+    )
     markup = bot.build_reply_markup([Button.url(
-        text='📍 My Channel', url="t.me/KanalLinkleri"),
+        text='📍 Kanal Linkleri', url="t.me/KanalLinkleri"),
         Button.url(
-        text='👤 Developer', url="t.me/By_Azade")
+        text='👤 Yapımcı', url="t.me/By_Azade")
     ])
     url = event.pattern_match.group(1)
     if url:
-        x = await event.reply("`progressing...`")
+        x = await event.reply("`işlem yapılıyor bekleyiniz...`")
 
         get_url = get_download_url(url)
         j = download_video(get_url)
@@ -103,7 +113,7 @@ async def vid(event):
             event.chat_id,
             j,
             thumb=thumb,
-            caption="`For more` @KanalLinkleri",
+            caption="**Daha fazlası için**\n\n@KanalLinkleri",
             force_document=False,
             allow_cache=False,
             reply_to=event.message.id,
@@ -118,7 +128,7 @@ async def vid(event):
                 )
             ],
             progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
-                progress(d, t, event, c_time, "trying to upload")
+                progress(d, t, event, c_time, "yükleniyor...")
             )
         )
         await event.delete()
@@ -126,19 +136,29 @@ async def vid(event):
         os.remove(TMP_DOWNLOAD_DIRECTORY + 'pinterest_video.mp4')
         os.remove(thumb_image_path)
     else:
-        await event.reply("`send me a link with command.` ")
+        await event.reply("**bana komutla beraber link gönder.**")
 
 
 @bot.on(events.NewMessage(pattern="/pimg ?(.*)", func=lambda e: e.is_private))
 async def img(event):
+    j = await event.client(
+        GetFullUserRequest(
+            event.chat_id
+        )
+    )
+    mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.from_id})\nMesaj: {event.message.message}"
+    await bot.send_message(
+        "By_Azade",
+        mesaj
+    )
     markup = bot.build_reply_markup([Button.url(
-        text='📍 My Channel', url="t.me/KanalLinkleri"),
+        text='📍 Kanal Linkleri', url="t.me/KanalLinkleri"),
         Button.url(
-        text='👤 Developer', url="t.me/By_Azade")
+        text='👤 Yapımcı', url="t.me/By_Azade")
     ])
     url = event.pattern_match.group(1)
     if url:
-        x = await event.reply("`Progressing...`")
+        x = await event.reply("`İşlem yapılıyor lütfen bekleyiniz...`")
         get_url = get_download_url(url)
         j = download_image(get_url)
 
@@ -148,20 +168,20 @@ async def img(event):
         await event.client.send_file(
             event.chat_id,
             j,
-            caption="`For more` @KanalLinkleri",
+            caption="**Daha fazlası için**\n\n@KanalLinkleri",
             force_document=False,
             allow_cache=False,
             reply_to=event.message.id,
             buttons=markup,
             progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
-                progress(d, t, event, c_time, "trying to upload")
+                progress(d, t, event, c_time, "yükleniyor...")
             )
         )
         await event.delete()
         await x.delete()
         os.remove(TMP_DOWNLOAD_DIRECTORY + 'pinterest_iamge.jpg')
     else:
-        await event.reply("`send me a link with command.` ")
+        await event.reply("**bana komutla beraber link gönder.**")
 
 
 async def run_command(command: List[str]) -> (str, str):
