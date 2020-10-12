@@ -10,7 +10,6 @@ import requests
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
 from pyquery import PyQuery as pq
-from sample_config import Config
 from telethon import TelegramClient, events
 from telethon.sync import TelegramClient
 from telethon.tl.custom import Button
