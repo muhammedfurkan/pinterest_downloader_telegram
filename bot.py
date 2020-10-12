@@ -126,8 +126,8 @@ async def img(event):
     get_url = get_download_url(url)
     j = download_image(get_url)
 
-    if not os.path.isdir(Config.TMP_DOWNLOAD_DIRECTORY):
-        os.makedirs(Config.TMP_DOWNLOAD_DIRECTORY)
+    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
+        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
     c_time = time.time()
     await event.client.send_file(
         event.chat_id,
@@ -143,7 +143,7 @@ async def img(event):
     )
     await event.delete()
     await x.delete()
-    os.remove(Config.TMP_DOWNLOAD_DIRECTORY + 'pinterest_iamge.jpg')
+    os.remove(TMP_DOWNLOAD_DIRECTORY + 'pinterest_iamge.jpg')
 
 
 async def run_command(command: List[str]) -> (str, str):
