@@ -30,7 +30,7 @@ TMP_DOWNLOAD_DIRECTORY = os.environ.get(
 bot = TelegramClient('pinterestbot', APP_ID, APP_HASH).start(
     bot_token=BOT_TOKEN)
 
-mesaj = """
+msg = """
 Merhaba ben Pinterest üzerinden Video ve Resim indirebilen bir botum.
 
 Şunları yapabilirim:
@@ -59,7 +59,7 @@ async def start(event):
             Button.url(
             text='👤 Yapımcı', url="t.me/By_Azade")
         ])
-        await bot.send_message(event.chat_id, mesaj, buttons=markup, link_preview=False)
+        await bot.send_message(event.chat_id, msg, buttons=markup, link_preview=False)
 
 
 @bot.on(events.NewMessage(pattern="/pvid ?(.*)", func=lambda e: e.is_private))
