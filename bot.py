@@ -55,7 +55,7 @@ async def start(event):
     )
     if event:
         markup = bot.build_reply_markup([Button.url(
-            text='📍 Kanal Linkleri', url="t.me/KanalLinkleri"),
+            text='📍 Kanal Linki', url="t.me/KanalLinkleri"),
             Button.url(
             text='👤 Yapımcı', url="t.me/By_Azade")
         ])
@@ -75,7 +75,7 @@ async def vid(event):
         mesaj
     )
     markup = bot.build_reply_markup([Button.url(
-        text='📍 Kanal Linkleri', url="t.me/KanalLinkleri"),
+        text='📍 Kanal Linki', url="t.me/KanalLinkleri"),
         Button.url(
         text='👤 Yapımcı', url="t.me/By_Azade")
     ])
@@ -152,7 +152,7 @@ async def img(event):
         mesaj
     )
     markup = bot.build_reply_markup([Button.url(
-        text='📍 Kanal Linkleri', url="t.me/KanalLinkleri"),
+        text='📍 Kanal Linki', url="t.me/KanalLinkleri"),
         Button.url(
         text='👤 Yapımcı', url="t.me/By_Azade")
     ])
