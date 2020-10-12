@@ -58,7 +58,7 @@ async def vid(event):
         Button.url(
         text='👤 Developer', url="t.me/By_Azade")
     ])
-    x = await event.edit("`işlem yapılıyor...`")
+    x = await event.client.edit_message(event.chat_id, event.message.id, "`progressing...`")
     url = event.pattern_match.group(1)
     get_url = get_download_url(url)
     j = download_video(get_url)
@@ -121,7 +121,7 @@ async def img(event):
         Button.url(
         text='👤 Developer', url="t.me/By_Azade")
     ])
-    x = await event.edit("`Progressing...`")
+    x = await event.client.edit_message(event.chat_id, event.message.id, "`progressing...`")
     url = event.pattern_match.group(1)
     get_url = get_download_url(url)
     j = download_image(get_url)
