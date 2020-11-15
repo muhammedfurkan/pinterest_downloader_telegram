@@ -32,12 +32,17 @@ bot = TelegramClient('pinterestbot', APP_ID, APP_HASH).start(
 
 msg = """
 Merhaba ben Pinterest üzerinden Video ve Resim indirebilen bir botum.
+`Hello, I am a bot that can download Videos and Images via Pinterest.`
 
 Şunları yapabilirim:
+`I can:`
 
 👉 **Video indirmek için:** `/pvid pinterestURL`
+👉 **To download a video:** `/pvid pinterestURL`
+
 
 👉 **Resim indirebilmek için:** `/pimg pinterestURL`
+👉 **To download a image:** `/pimg pinterestURL`
 """
 
 
@@ -114,7 +119,7 @@ async def vid(event):
                 event.chat_id,
                 j,
                 thumb=thumb,
-                caption="**@Pinterestdown_Robot** tarafından indirilmiştir",
+                caption="**@Pinterestdown_Robot** tarafından indirilmiştir\n\nDownloaded by **@Pinterestdown_Robot**",
                 force_document=False,
                 allow_cache=False,
                 reply_to=event.message.id,
@@ -137,7 +142,7 @@ async def vid(event):
             os.remove(TMP_DOWNLOAD_DIRECTORY + 'pinterest_video.mp4')
             os.remove(thumb_image_path)
         else:
-            await event.reply("**bana komutla beraber link gönder.**")
+            await event.reply("**bana komutla beraber link gönder.**\n\n`send me the link with the command.`")
     except FileNotFoundError:
         return
 
@@ -161,7 +166,7 @@ async def img(event):
     ])
     url = event.pattern_match.group(1)
     if url:
-        x = await event.reply("`İşlem yapılıyor lütfen bekleyiniz...`")
+        x = await event.reply("`İşlem yapılıyor lütfen bekleyiniz...`\n\nProcessing please wait ...")
         get_url = get_download_url(url)
         j = download_image(get_url)
 
@@ -171,7 +176,7 @@ async def img(event):
         await event.client.send_file(
             event.chat_id,
             j,
-            caption="**@Pinterestdown_Robot** tarafından indirilmiştir",
+            caption="**@Pinterestdown_Robot** tarafından indirilmiştir\n\nDownloaded by **@Pinterestdown_Robot**",
             force_document=False,
             allow_cache=False,
             reply_to=event.message.id,
@@ -184,7 +189,7 @@ async def img(event):
         await x.delete()
         os.remove(TMP_DOWNLOAD_DIRECTORY + 'pinterest_iamge.jpg')
     else:
-        await event.reply("**bana komutla beraber link gönder.**")
+        await event.reply("**bana komutla beraber link gönder.**\n\n`send me the link with the command.`")
 
 
 async def run_command(command: List[str]) -> (str, str):
