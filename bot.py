@@ -188,8 +188,7 @@ async def start(event):
         mesaj
     )
     if event:
-        markup = bot.build_reply_markup
-        (
+        markup = bot.build_reply_markup(
             [
                 [
                     Button.url(
