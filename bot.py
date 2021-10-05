@@ -112,6 +112,7 @@ async def log_yolla(event):
     db.ekle(uye_id, uye_nick, uye_adi)
 
 
+# total number of users using the bot
 @bot.on(events.NewMessage(pattern="/kul_say"))
 async def say(event):
     j = await event.client(
@@ -128,6 +129,7 @@ async def say(event):
     await event.client.send_message("By_Azade", f"ℹ️ `{len(KULLANICILAR())}` __Adet Kullanıcıya Sahipsin..__")
 
 
+# Command to make an announcement to users using the bot
 @bot.on(events.NewMessage(pattern="/duyuru ?(.*)"))
 async def duyuru(event):
     # < Başlangıç
@@ -190,6 +192,9 @@ async def start(event):
             text='📍 Kanal Linki', url="t.me/KanalLinkleri"),
             Button.url(
             text='👤 Yapımcı', url="t.me/By_Azade")
+        ], [
+            Button.url(text="🔗 GitHub Repo",
+                       url="https://github.com/muhammedfurkan/pinterest_downloader_telegram")
         ])
         await bot.send_message(event.chat_id, msg, buttons=markup, link_preview=False)
 
