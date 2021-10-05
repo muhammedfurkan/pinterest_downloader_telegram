@@ -188,14 +188,21 @@ async def start(event):
         mesaj
     )
     if event:
-        markup = bot.build_reply_markup([Button.url(
-            text='📍 Kanal Linki', url="t.me/KanalLinkleri"),
-            Button.url(
-            text='👤 Yapımcı', url="t.me/By_Azade")
-        ], [
-            Button.url(text="🔗 GitHub Repo",
-                       url="https://github.com/muhammedfurkan/pinterest_downloader_telegram")
-        ])
+        markup = bot.build_reply_markup
+        (
+            [
+                [
+                    Button.url(
+                        text='📍 Kanal Linki', url="t.me/KanalLinkleri"),
+                    Button.url(
+                        text='👤 Yapımcı', url="t.me/By_Azade")
+                ],
+                [
+                    Button.url(text="🔗 GitHub Repo",
+                               url="https://github.com/muhammedfurkan/pinterest_downloader_telegram")
+                ]
+            ]
+        )
         await bot.send_message(event.chat_id, msg, buttons=markup, link_preview=False)
 
 
