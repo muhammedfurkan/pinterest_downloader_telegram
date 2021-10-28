@@ -17,10 +17,10 @@ from telethon.tl.custom import Button
 from telethon.tl.functions.users import GetFullUserRequest
 from telethon.tl.types import DocumentAttributeVideo
 
-logging.basicConfig(format='[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s',
-                    level=logging.WARNING)
+logging.basicConfig(
+    format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s", level=logging.WARNING
+)
 logger = logging.getLogger(__name__)
-
 
 APP_ID = os.environ.get("APP_ID", None)
 APP_HASH = os.environ.get("APP_HASH", None)
@@ -29,8 +29,8 @@ TMP_DOWNLOAD_DIRECTORY = os.environ.get(
     "TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/")
 MONGO_DB = os.environ.get("MONGO_DB", None)
 
-bot = TelegramClient('pinterestbot', APP_ID, APP_HASH).start(
-    bot_token=BOT_TOKEN)
+bot = TelegramClient("pinterestbot", APP_ID,
+                     APP_HASH).start(bot_token=BOT_TOKEN)
 
 msg = """
 Merhaba ben Pinterest üzerinden Video ve Resim indirebilen bir botum.
@@ -47,61 +47,56 @@ Merhaba ben Pinterest üzerinden Video ve Resim indirebilen bir botum.
 👉 **To download a image:** `/pimg pinterestURL`
 """
 
-
 SESSION_ADI = "pinterest"
 
 
 class pinterest_db:
     def __init__(self):
         client = pymongo.MongoClient(MONGO_DB)
-        db = client['Telegram']
+        db = client["Telegram"]
         self.collection = db[SESSION_ADI]
 
     def ara(self, sorgu: dict):
         say = self.collection.count_documents(sorgu)
         if say == 1:
-            return self.collection.find_one(sorgu, {'_id': 0})
+            return self.collection.find_one(sorgu, {"_id": 0})
         elif say > 1:
-            cursor = self.collection.find(sorgu, {'_id': 0})
+            cursor = self.collection.find(sorgu, {"_id": 0})
             return {
-                bak['uye_id']: {
-                    "uye_nick": bak['uye_nick'],
-                    "uye_adi": bak['uye_adi']
-                }
+                bak["uye_id"]: {"uye_nick": bak["uye_nick"],
+                                "uye_adi": bak["uye_adi"]}
                 for bak in cursor
             }
         else:
             return None
 
     def ekle(self, uye_id, uye_nick, uye_adi):
-        if not self.ara({'uye_id': {'$in': [str(uye_id), int(uye_id)]}}):
-            return self.collection.insert_one({
-                "uye_id": uye_id,
-                "uye_nick": uye_nick,
-                "uye_adi": uye_adi,
-            })
+        if not self.ara({"uye_id": {"$in": [str(uye_id), int(uye_id)]}}):
+            return self.collection.insert_one(
+                {
+                    "uye_id": uye_id,
+                    "uye_nick": uye_nick,
+                    "uye_adi": uye_adi,
+                }
+            )
         else:
             return None
 
     def sil(self, uye_id):
-        if not self.ara({'uye_id': {'$in': [str(uye_id), int(uye_id)]}}):
+        if not self.ara({"uye_id": {"$in": [str(uye_id), int(uye_id)]}}):
             return None
 
         self.collection.delete_one(
-            {'uye_id': {'$in': [str(uye_id), int(uye_id)]}})
+            {"uye_id": {"$in": [str(uye_id), int(uye_id)]}})
         return True
 
     @property
     def kullanici_idleri(self):
-        return list(self.ara({'uye_id': {'$exists': True}}).keys())
+        return list(self.ara({"uye_id": {"$exists": True}}).keys())
 
 
 async def log_yolla(event):
-    j = await event.client(
-        GetFullUserRequest(
-            event.chat_id
-        )
-    )
+    j = await event.client(GetFullUserRequest(event.chat_id))
     uye_id = j.user.id
     uye_nick = f"@{j.user.username}" if j.user.username else None
     uye_adi = f"{j.user.first_name or ''} {j.user.last_name or ''}".strip()
@@ -115,18 +110,17 @@ async def log_yolla(event):
 # total number of users using the bot
 @bot.on(events.NewMessage(pattern="/kul_say"))
 async def say(event):
-    j = await event.client(
-        GetFullUserRequest(
-            event.chat_id
-        )
-    )
+    j = await event.client(GetFullUserRequest(event.chat_id))
 
     db = pinterest_db()
     db.ekle(j.user.id, j.user.username, j.user.first_name)
 
-    def KULLANICILAR(): return db.kullanici_idleri
+    def KULLANICILAR():
+        return db.kullanici_idleri
 
-    await event.client.send_message("By_Azade", f"ℹ️ `{len(KULLANICILAR())}` __Adet Kullanıcıya Sahipsin..__")
+    await event.client.send_message(
+        "By_Azade", f"ℹ️ `{len(KULLANICILAR())}` __Adet Kullanıcıya Sahipsin..__"
+    )
 
 
 # Command to make an announcement to users using the bot
@@ -135,14 +129,15 @@ async def duyuru(event):
     # < Başlangıç
     await log_yolla(event)
 
-    ilk_mesaj = await event.client.send_message(event.chat_id, "⌛️ `Hallediyorum..`",
-                                                reply_to=event.chat_id,
-                                                link_preview=False
-                                                )
+    ilk_mesaj = await event.client.send_message(
+        event.chat_id, "⌛️ `Hallediyorum..`", reply_to=event.chat_id, link_preview=False
+    )
     # ------------------------------------------------------------- Başlangıç >
 
     db = pinterest_db()
-    def KULLANICILAR(): return db.kullanici_idleri
+
+    def KULLANICILAR():
+        return db.kullanici_idleri
 
     if not KULLANICILAR():
         await ilk_mesaj.edit("ℹ️ __Start vermiş kimse yok kanka..__")
@@ -159,8 +154,7 @@ async def duyuru(event):
     for kullanici_id in KULLANICILAR():
         try:
             await event.client.send_message(
-                entity=kullanici_id,
-                message=get_reply_msg.message
+                entity=kullanici_id, message=get_reply_msg.message
             )
             mesaj_giden_kisiler.append(kullanici_id)
             basarili += 1
@@ -168,7 +162,11 @@ async def duyuru(event):
             hatalar.append(type(hata).__name__)
             db.sil(kullanici_id)
 
-    mesaj = f"⁉️ `{len(hatalar)}` __Adet Kişiye Mesaj Atamadım ve DB'den Sildim..__\n\n" if hatalar else ""
+    mesaj = (
+        f"⁉️ `{len(hatalar)}` __Adet Kişiye Mesaj Atamadım ve DB'den Sildim..__\n\n"
+        if hatalar
+        else ""
+    )
     mesaj += f"📜 `{basarili}` __Adet Kullanıcıya Mesaj Attım..__"
 
     await ilk_mesaj.edit(mesaj)
@@ -177,29 +175,22 @@ async def duyuru(event):
 @bot.on(events.NewMessage(pattern="/start", func=lambda e: e.is_private))
 async def start(event):
     await log_yolla(event)
-    j = await event.client(
-        GetFullUserRequest(
-            event.chat_id
-        )
-    )
+    j = await event.client(GetFullUserRequest(event.chat_id))
     mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-    await bot.send_message(
-        "By_Azade",
-        mesaj
-    )
+    await bot.send_message("By_Azade", mesaj)
     if event:
         markup = bot.build_reply_markup(
             [
                 [
-                    Button.url(
-                        text='📍 Kanal Linki', url="t.me/KanalLinkleri"),
-                    Button.url(
-                        text='👤 Yapımcı', url="t.me/By_Azade")
+                    Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
+                    Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
                 ],
                 [
-                    Button.url(text="🔗 GitHub Repo",
-                               url="https://github.com/muhammedfurkan/pinterest_downloader_telegram")
-                ]
+                    Button.url(
+                        text="🔗 GitHub Repo",
+                        url="https://github.com/muhammedfurkan/pinterest_downloader_telegram",
+                    )
+                ],
             ]
         )
         await bot.send_message(event.chat_id, msg, buttons=markup, link_preview=False)
@@ -209,21 +200,15 @@ async def start(event):
 async def vid(event):
     await log_yolla(event)
     try:
-        j = await event.client(
-            GetFullUserRequest(
-                event.chat_id
-            )
-        )
+        j = await event.client(GetFullUserRequest(event.chat_id))
         mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-        await bot.send_message(
-            "By_Azade",
-            mesaj
+        await bot.send_message("By_Azade", mesaj)
+        markup = bot.build_reply_markup(
+            [
+                Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
+                Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
+            ]
         )
-        markup = bot.build_reply_markup([Button.url(
-            text='📍 Kanal Linki', url="t.me/KanalLinkleri"),
-            Button.url(
-            text='👤 Yapımcı', url="t.me/By_Azade")
-        ])
         url = event.pattern_match.group(1)
         if url:
             x = await event.reply("`işlem yapılıyor bekleyiniz...`")
@@ -239,7 +224,7 @@ async def vid(event):
             duration = 0
 
             if metadata.has("duration"):
-                duration = metadata.get('duration').seconds
+                duration = metadata.get("duration").seconds
                 width = 0
                 height = 0
                 thumb = None
@@ -248,9 +233,7 @@ async def vid(event):
                 thumb = thumb_image_path
             else:
                 thumb = await take_screen_shot(
-                    j,
-                    os.path.dirname(os.path.abspath(j)),
-                    (duration / 2)
+                    j, os.path.dirname(os.path.abspath(j)), (duration / 2)
                 )
 
             c_time = time.time()
@@ -269,19 +252,21 @@ async def vid(event):
                         w=width,
                         h=height,
                         round_message=False,
-                        supports_streaming=True
+                        supports_streaming=True,
                     )
                 ],
                 progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
                     progress(d, t, event, c_time, "yükleniyor...")
-                )
+                ),
             )
             await event.delete()
             await x.delete()
-            os.remove(TMP_DOWNLOAD_DIRECTORY + 'pinterest_video.mp4')
+            os.remove(TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4")
             os.remove(thumb_image_path)
         else:
-            await event.reply("**bana komutla beraber link gönder.**\n\n`send me the link with the command.`")
+            await event.reply(
+                "**bana komutla beraber link gönder.**\n\n`send me the link with the command.`"
+            )
     except FileNotFoundError:
         return
 
@@ -289,24 +274,20 @@ async def vid(event):
 @bot.on(events.NewMessage(pattern="/pimg ?(.*)", func=lambda e: e.is_private))
 async def img(event):
     await log_yolla(event)
-    j = await event.client(
-        GetFullUserRequest(
-            event.chat_id
-        )
-    )
+    j = await event.client(GetFullUserRequest(event.chat_id))
     mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-    await bot.send_message(
-        "By_Azade",
-        mesaj
+    await bot.send_message("By_Azade", mesaj)
+    markup = bot.build_reply_markup(
+        [
+            Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
+            Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
+        ]
     )
-    markup = bot.build_reply_markup([Button.url(
-        text='📍 Kanal Linki', url="t.me/KanalLinkleri"),
-        Button.url(
-        text='👤 Yapımcı', url="t.me/By_Azade")
-    ])
     url = event.pattern_match.group(1)
     if url:
-        x = await event.reply("`İşlem yapılıyor lütfen bekleyiniz...`\n\nProcessing please wait ...")
+        x = await event.reply(
+            "`İşlem yapılıyor lütfen bekleyiniz...`\n\nProcessing please wait ..."
+        )
         get_url = get_download_url(url)
         j = download_image(get_url)
 
@@ -323,13 +304,15 @@ async def img(event):
             buttons=markup,
             progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
                 progress(d, t, event, c_time, "yükleniyor...")
-            )
+            ),
         )
         await event.delete()
         await x.delete()
-        os.remove(TMP_DOWNLOAD_DIRECTORY + 'pinterest_iamge.jpg')
+        os.remove(TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg")
     else:
-        await event.reply("**bana komutla beraber link gönder.**\n\n`send me the link with the command.`")
+        await event.reply(
+            "**bana komutla beraber link gönder.**\n\n`send me the link with the command.`"
+        )
 
 
 async def run_command(command: List[str]) -> (str, str):
@@ -348,8 +331,7 @@ async def run_command(command: List[str]) -> (str, str):
 
 async def take_screen_shot(video_file, output_directory, ttl):
     # https://stackoverflow.com/a/13891070/4723940
-    out_put_file_name = output_directory + \
-        "/" + str(time.time()) + ".jpg"
+    out_put_file_name = output_directory + "/" + str(time.time()) + ".jpg"
     file_genertor_command = [
         "ffmpeg",
         "-ss",
@@ -358,7 +340,7 @@ async def take_screen_shot(video_file, output_directory, ttl):
         video_file,
         "-vframes",
         "1",
-        out_put_file_name
+        out_put_file_name,
     ]
     # width = "90"
     t_response, e_response = await run_command(file_genertor_command)
@@ -378,13 +360,7 @@ def humanbytes(size):
     # 2 ** 10 = 1024
     power = 2 ** 10
     raised_to_pow = 0
-    dict_power_n = {
-        0: "",
-        1: "Ki",
-        2: "Mi",
-        3: "Gi",
-        4: "Ti"
-    }
+    dict_power_n = {0: "", 1: "Ki", 2: "Mi", 3: "Gi", 4: "Ti"}
     while size > power:
         size /= power
         raised_to_pow += 1
@@ -397,12 +373,8 @@ def time_formatter(seconds: int) -> str:
     result = ""
     v_m = 0
     remainder = seconds
-    r_ange_s = {
-        "days": (24 * 60 * 60),
-        "hours": (60 * 60),
-        "minutes": 60,
-        "seconds": 1
-    }
+    r_ange_s = {"days": (24 * 60 * 60), "hours": (60 * 60),
+                "minutes": 60, "seconds": 1}
     for age, divisor in r_ange_s.items():
         v_m, remainder = divmod(remainder, divisor)
         v_m = int(v_m)
@@ -425,33 +397,30 @@ async def progress(current, total, event, start, type_of_ps):
         time_to_completion = round((total - current) / speed)
         estimated_total_time = elapsed_time + time_to_completion
         progress_str = "[{0}{1}]\nPercent: {2}%\n".format(
-            ''.join(["█" for _ in range(math.floor(percentage / 5))]),
-            ''.join(["░" for _ in range(20 - math.floor(percentage / 5))]),
-            round(percentage, 2))
-        tmp = progress_str + \
-            "{0} of {1}\nETA: {2}".format(
-                humanbytes(current),
-                humanbytes(total),
-                time_formatter(estimated_total_time)
-            )
-        await event.edit("{}\n {}".format(
-            type_of_ps,
-            tmp
-        ))
+            "".join(["█" for _ in range(math.floor(percentage / 5))]),
+            "".join(["░" for _ in range(20 - math.floor(percentage / 5))]),
+            round(percentage, 2),
+        )
+        tmp = progress_str + "{0} of {1}\nETA: {2}".format(
+            humanbytes(current), humanbytes(
+                total), time_formatter(estimated_total_time)
+        )
+        await event.edit("{}\n {}".format(type_of_ps, tmp))
 
 
 # Function to get download url
 def get_download_url(link):
     # Make request to website
     post_request = requests.post(
-        'https://www.expertsphp.com/download.php', data={'url': link})
+        "https://www.expertsphp.com/download.php", data={"url": link}
+    )
 
     # Get content from post request
     request_content = post_request.content
-    str_request_content = str(request_content, 'utf-8')
-    return pq(str_request_content)('table.table-condensed')('tbody')('td')(
-        'a'
-    ).attr('href')
+    str_request_content = str(request_content, "utf-8")
+    return pq(str_request_content)("table.table-condensed")("tbody")("td")("a").attr(
+        "href"
+    )
 
 
 # Function to download video
@@ -459,9 +428,9 @@ def download_video(url):
     if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
         os.makedirs(TMP_DOWNLOAD_DIRECTORY)
     video_to_download = request.urlopen(url).read()
-    with open(TMP_DOWNLOAD_DIRECTORY + 'pinterest_video.mp4', 'wb') as video_stream:
+    with open(TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4", "wb") as video_stream:
         video_stream.write(video_to_download)
-    return TMP_DOWNLOAD_DIRECTORY + 'pinterest_video.mp4'
+    return TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4"
 
 
 # Function to download image
@@ -469,9 +438,9 @@ def download_image(url):
     if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
         os.makedirs(TMP_DOWNLOAD_DIRECTORY)
     image_to_download = request.urlopen(url).read()
-    with open(TMP_DOWNLOAD_DIRECTORY + 'pinterest_iamge.jpg', 'wb') as photo_stream:
+    with open(TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg", "wb") as photo_stream:
         photo_stream.write(image_to_download)
-    return TMP_DOWNLOAD_DIRECTORY + 'pinterest_iamge.jpg'
+    return TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg"
 
 
 bot.start()
