@@ -1,5 +1,5 @@
 git+https://github.com/LonamiWebs/Telethon.git
-cryptg
+telethon-tgcrypto
 hachoir
 pyquery
 urllib3
