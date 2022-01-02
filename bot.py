@@ -26,12 +26,10 @@ logger = logging.getLogger(__name__)
 APP_ID = os.environ.get("APP_ID", None)
 APP_HASH = os.environ.get("APP_HASH", None)
 BOT_TOKEN = os.environ.get("BOT_TOKEN", None)
-TMP_DOWNLOAD_DIRECTORY = os.environ.get(
-    "TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/")
+TMP_DOWNLOAD_DIRECTORY = os.environ.get("TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/")
 MONGO_DB = os.environ.get("MONGO_DB", None)
 
-bot = TelegramClient("pinterestbot", APP_ID,
-                     APP_HASH).start(bot_token=BOT_TOKEN)
+bot = TelegramClient("pinterestbot", APP_ID, APP_HASH).start(bot_token=BOT_TOKEN)
 
 msg = """
 Merhaba ben Pinterest üzerinden Video ve Resim indirebilen bir botum.
@@ -65,8 +63,7 @@ class pinterest_db:
         elif say > 1:
             cursor = self.collection.find(sorgu, {"_id": 0})
             return {
-                bak["uye_id"]: {"uye_nick": bak["uye_nick"],
-                                "uye_adi": bak["uye_adi"]}
+                bak["uye_id"]: {"uye_nick": bak["uye_nick"], "uye_adi": bak["uye_adi"]}
                 for bak in cursor
             }
         else:
@@ -88,8 +85,7 @@ class pinterest_db:
         if not self.ara({"uye_id": {"$in": [str(uye_id), int(uye_id)]}}):
             return None
 
-        self.collection.delete_one(
-            {"uye_id": {"$in": [str(uye_id), int(uye_id)]}})
+        self.collection.delete_one({"uye_id": {"$in": [str(uye_id), int(uye_id)]}})
         return True
 
     @property
@@ -193,6 +189,7 @@ async def start(event):
                         url="https://github.com/muhammedfurkan/pinterest_downloader_telegram",
                     )
                 ],
+                [Button.inline(text="🤖 Diğer Botlar", data="digerbotlar")],
             ]
         )
         await bot.send_message(event.chat_id, msg, buttons=markup, link_preview=False)
@@ -207,10 +204,14 @@ async def vid(event):
         await bot.send_message("By_Azade", mesaj)
         markup = bot.build_reply_markup(
             [
-                Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
-                Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
+                [
+                    Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
+                    Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
+                ],
+                [Button.inline(text="🤖 Diğer Botlar", data="digerbotlar")],
             ]
         )
+
         url = event.pattern_match.group(1)
         if url:
             x = await event.reply("`işlem yapılıyor bekleyiniz...`")
@@ -288,8 +289,11 @@ async def img(event):
     await bot.send_message("By_Azade", mesaj)
     markup = bot.build_reply_markup(
         [
-            Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
-            Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
+            [
+                Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
+                Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
+            ],
+            [Button.inline(text="🤖 Diğer Botlar", data="digerbotlar")],
         ]
     )
     url = event.pattern_match.group(1)
@@ -322,6 +326,57 @@ async def img(event):
         await event.reply(
             "**bana komutla beraber link gönder.**\n\n`send me the link with the command.`"
         )
+
+
+@bot.on(events.CallbackQuery(pattern=b"digerbotlar"))
+async def digerbotlar(event):
+    markup = bot.build_reply_markup(
+        [
+            [
+                Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
+                Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
+            ],
+            [Button.inline(text="Ana Sayfa", data="ana")],
+        ]
+    )
+    await event.edit(
+        "**Diğer Botlarımız:**\n\n"
+        + "📍 [A101 Katalog Bot](t.me/A101KatalogBot)\n"
+        + "📍 [Osmanlıca Bot](t.me/OsmanlicaBot)\n"
+        + "📍 [Pinterest Video Resim İndirici Bot](t.me/A101KatalogBot)\n"
+        + "📍 [Arşiv Çıkarıcı Bot](t.me/ExtractorRobot)\n"
+        + "📍 [Vimeo Video İndirici Bot](t.me/vimeo_robot)\n"
+        + "📍 [Tureng Bot](t.me/TurengRobot)\n"
+        + "📍 [TDK Bot](t.me/TDK_ROBOT)\n"
+        + "📍 [Müzik Arama Bot](t.me/muzikaramabot)\n"
+        + "📍 [ÖSYM Bot](t.me/OSYMRobot)\n"
+        + "📍 [Youtube Playlist İndirici Bot](t.me/PlaylistIndirRobot)\n"
+        + "📍 [Drive Upload Bot](t.me/driveyuklebot)\n"
+        + "📍 [GoFile Upload Bot](t.me/GofileRobot)\n"
+        + "📍 [Bim Aktuel Ürünler Bot](t.me/BimAktuelBot)\n",
+        buttons=markup,
+        link_preview=False,
+    )
+
+
+@bot.on(events.CallbackQuery(pattern=b"ana"))
+async def ana(event):
+    markup = bot.build_reply_markup(
+        [
+            [
+                Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
+                Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
+            ],
+            [
+                Button.url(
+                    text="🔗 GitHub Repo",
+                    url="https://github.com/muhammedfurkan/pinterest_downloader_telegram",
+                )
+            ],
+            [Button.inline(text="🤖 Diğer Botlar", data="digerbotlar")],
+        ]
+    )
+    await event.edit(msg, buttons=markup, link_preview=False)
 
 
 async def run_command(command: List[str]) -> (str, str):
@@ -382,8 +437,7 @@ def time_formatter(seconds: int) -> str:
     result = ""
     v_m = 0
     remainder = seconds
-    r_ange_s = {"days": (24 * 60 * 60), "hours": (60 * 60),
-                "minutes": 60, "seconds": 1}
+    r_ange_s = {"days": 24 * 60 * 60, "hours": 60 ** 2, "minutes": 60, "seconds": 1}
     for age, divisor in r_ange_s.items():
         v_m, remainder = divmod(remainder, divisor)
         v_m = int(v_m)
@@ -411,8 +465,7 @@ async def progress(current, total, event, start, type_of_ps):
             round(percentage, 2),
         )
         tmp = progress_str + "{0} of {1}\nETA: {2}".format(
-            humanbytes(current), humanbytes(
-                total), time_formatter(estimated_total_time)
+            humanbytes(current), humanbytes(total), time_formatter(estimated_total_time)
         )
         await event.edit("{}\n {}".format(type_of_ps, tmp))
 
