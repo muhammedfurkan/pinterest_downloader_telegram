@@ -1,4 +1,5 @@
 git+https://github.com/LonamiWebs/Telethon.git
+markdown-it-py~=1.1.0
 telethon-tgcrypto
 hachoir
 pyquery
