@@ -13,11 +13,11 @@ from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
 from pymongo import MongoClient
 from pyquery import PyQuery as pq
-# from telethon.sync import TelegramClient
 from telethon import TelegramClient, events
-from telethon._tl import DocumentAttributeVideo
-from telethon._tl.functions.users import GetFullUserRequest
-# from telethon._tl.types import DocumentAttributeVideo
+from telethon.sync import TelegramClient
+from telethon.tl.custom import Button
+from telethon.tl.functions.users import GetFullUserRequest
+from telethon.tl.types import DocumentAttributeVideo
 from telethon.types._custom import Button
 
 logging.basicConfig(
