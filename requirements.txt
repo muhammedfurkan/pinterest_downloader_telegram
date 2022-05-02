@@ -1,6 +1,5 @@
 telethon
-markdown-it-py~=1.1.0
-telethon-tgcrypto
+cryptg
 hachoir
 pyquery
 urllib3

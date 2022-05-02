@@ -348,7 +348,8 @@ async def digerbotlar(event):
     await event.edit(
         "**Diğer Botlarımız:**\n\n"
         + "📍 [A101 Katalog Bot](t.me/A101KatalogBot)\n"
-        + "📍 [Osmanlıca Bot](t.me/OsmanlicaBot)\n"
+        + "📍 [Osmanlıca Bot](t.me/OsmanlicamBot)\n"
+        + "📍 [Döviz Bot](t.me/DovizRobot)\n"
         + "📍 [Pinterest Video Resim İndirici Bot](t.me/A101KatalogBot)\n"
         + "📍 [Arşiv Çıkarıcı Bot](t.me/ExtractorRobot)\n"
         + "📍 [Vimeo Video İndirici Bot](t.me/vimeo_robot)\n"
@@ -359,9 +360,13 @@ async def digerbotlar(event):
         + "📍 [Youtube Playlist İndirici Bot](t.me/PlaylistIndirRobot)\n"
         + "📍 [Drive Upload Bot](t.me/driveyuklebot)\n"
         + "📍 [GoFile Upload Bot](t.me/GofileRobot)\n"
-        + "📍 [Bim Aktuel Ürünler Bot](t.me/BimAktuelBot)\n",
-        buttons=markup,
+        + "📍 [Bim Aktuel Ürünler Bot](t.me/BimAktuelBot)\n"
+        + "📍 [Dosya Ara Bot](t.me/DosyaAraBot)\n"
+        + "🆕 [Spotify & YouTube İndirici](t.me/YouTubeSpotifyMp3IndirBot)\n"
+        + "🆕 [Streamtape Bot](t.me/StreamTapeUploaderBot)\n"
+        + "🆕 [Şok Aktuel Bot](t.me/SokAktuelBot)\n",
         link_preview=False,
+        buttons=markup,
     )
 
 
