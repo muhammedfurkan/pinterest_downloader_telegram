@@ -35,6 +35,9 @@ MONGO_DB = os.environ.get("MONGO_DB", None)
 bot = TelegramClient("pinterestbot", APP_ID,
                      APP_HASH).start(bot_token=BOT_TOKEN)
 
+
+loop = asyncio.get_event_loop()
+
 msg = """
 Merhaba ben Pinterest üzerinden Video ve Resim indirebilen bir botum.
 `Hello, I am a bot that can download Videos and Images via Pinterest.`
@@ -223,7 +226,9 @@ async def vid(event):
             x = await event.reply("`işlem yapılıyor bekleyiniz...`")
 
             get_url = get_download_url(url)
-            j = download_video(get_url)
+            # await loop.run_in_executor(None, download_video(get_url))
+            j = await loop.run_in_executor(None, download_video, get_url)
+            # j = download_video(get_url)
             thumb_image_path = TMP_DOWNLOAD_DIRECTORY + "thumb_image.jpg"
 
             if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
@@ -308,7 +313,8 @@ async def img(event):
             "`İşlem yapılıyor lütfen bekleyiniz...`\n\nProcessing please wait ..."
         )
         get_url = get_download_url(url)
-        j = download_image(get_url)
+        j = await loop.run_in_executor(None, download_video, get_url)
+        # j = download_image(get_url)
 
         if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
             os.makedirs(TMP_DOWNLOAD_DIRECTORY)
