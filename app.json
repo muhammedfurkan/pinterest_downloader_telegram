@@ -9,7 +9,7 @@
         "video",
         "image"
     ],
-    "repository": "https://gitlab.com/muhammedfurkan/UniBorg",
+    "repository": "https://github.com/muhammedfurkan/TelethonUserBot",
     "website": "https://telegram.dog/KanalLinkleri",
     "success_url": "https://t.me/KanalLinkleri",
     "env": {
