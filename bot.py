@@ -2,7 +2,6 @@ import asyncio
 import logging
 import math
 import os
-import re
 import time
 from typing import List
 from urllib import request
@@ -11,7 +10,6 @@ import pymongo
 import requests
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
-from pymongo import MongoClient
 from pyquery import PyQuery as pq
 from telethon import TelegramClient, events
 from telethon.tl.custom import Button
