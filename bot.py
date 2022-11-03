@@ -27,12 +27,10 @@ logger = logging.getLogger(__name__)
 APP_ID = os.environ.get("APP_ID", None)
 APP_HASH = os.environ.get("APP_HASH", None)
 BOT_TOKEN = os.environ.get("BOT_TOKEN", None)
-TMP_DOWNLOAD_DIRECTORY = os.environ.get(
-    "TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/")
+TMP_DOWNLOAD_DIRECTORY = os.environ.get("TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/")
 MONGO_DB = os.environ.get("MONGO_DB", None)
 
-bot = TelegramClient("pinterestbot", APP_ID,
-                     APP_HASH).start(bot_token=BOT_TOKEN)
+bot = TelegramClient("pinterestbot", APP_ID, APP_HASH).start(bot_token=BOT_TOKEN)
 
 
 loop = asyncio.get_event_loop()
@@ -69,8 +67,7 @@ class pinterest_db:
         elif say > 1:
             cursor = self.collection.find(sorgu, {"_id": 0})
             return {
-                bak["uye_id"]: {"uye_nick": bak["uye_nick"],
-                                "uye_adi": bak["uye_adi"]}
+                bak["uye_id"]: {"uye_nick": bak["uye_nick"], "uye_adi": bak["uye_adi"]}
                 for bak in cursor
             }
         else:
@@ -92,8 +89,7 @@ class pinterest_db:
         if not self.ara({"uye_id": {"$in": [str(uye_id), int(uye_id)]}}):
             return None
 
-        self.collection.delete_one(
-            {"uye_id": {"$in": [str(uye_id), int(uye_id)]}})
+        self.collection.delete_one({"uye_id": {"$in": [str(uye_id), int(uye_id)]}})
         return True
 
     @property
@@ -438,7 +434,7 @@ def humanbytes(size):
     if not size:
         return ""
     # 2 ** 10 = 1024
-    power = 2 ** 10
+    power = 2**10
     raised_to_pow = 0
     dict_power_n = {0: "", 1: "Ki", 2: "Mi", 3: "Gi", 4: "Ti"}
     while size > power:
@@ -453,8 +449,7 @@ def time_formatter(seconds: int) -> str:
     result = ""
     v_m = 0
     remainder = seconds
-    r_ange_s = {"days": 24 * 60 * 60, "hours": 60 **
-                2, "minutes": 60, "seconds": 1}
+    r_ange_s = {"days": 24 * 60 * 60, "hours": 60**2, "minutes": 60, "seconds": 1}
     for age, divisor in r_ange_s.items():
         v_m, remainder = divmod(remainder, divisor)
         v_m = int(v_m)
@@ -482,8 +477,7 @@ async def progress(current, total, event, start, type_of_ps):
             round(percentage, 2),
         )
         tmp = progress_str + "{0} of {1}\nETA: {2}".format(
-            humanbytes(current), humanbytes(
-                total), time_formatter(estimated_total_time)
+            humanbytes(current), humanbytes(total), time_formatter(estimated_total_time)
         )
         await event.edit("{}\n {}".format(type_of_ps, tmp))
 
