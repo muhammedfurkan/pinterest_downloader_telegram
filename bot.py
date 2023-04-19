@@ -27,6 +27,7 @@ APP_HASH = os.environ.get("APP_HASH", None)
 BOT_TOKEN = os.environ.get("BOT_TOKEN", None)
 TMP_DOWNLOAD_DIRECTORY = os.environ.get("TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/")
 MONGO_DB = os.environ.get("MONGO_DB", None)
+BOT_ADMIN = os.environ.get("BOT_ADMIN",None)
 
 bot = TelegramClient("pinterestbot", APP_ID, APP_HASH).start(bot_token=BOT_TOKEN)
 
@@ -119,7 +120,7 @@ async def say(event):
         return db.kullanici_idleri
 
     await event.client.send_message(
-        "By_Azade", f"ℹ️ `{len(KULLANICILAR())}` __Adet Kullanıcıya Sahipsin..__"
+        BOT_ADMIN, f"ℹ️ `{len(KULLANICILAR())}` __Adet Kullanıcıya Sahipsin..__"
     )
 
 
