@@ -4,7 +4,7 @@ import math
 import os
 import re
 import time
-from typing import List
+from typing import List, Tuple
 from urllib import request
 
 import pymongo
@@ -28,12 +28,12 @@ logger = logging.getLogger(__name__)
 APP_ID = os.environ.get("APP_ID", None)
 APP_HASH = os.environ.get("APP_HASH", None)
 BOT_TOKEN = os.environ.get("BOT_TOKEN", None)
-TMP_DOWNLOAD_DIRECTORY = os.environ.get(
-    "TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/")
+TMP_DOWNLOAD_DIRECTORY = os.environ.get("TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/")
 MONGO_DB = os.environ.get("MONGO_DB", None)
+# type yout telegram id or username
+LOG = os.environ.get("LOG", None)
 
-bot = TelegramClient("pinterestbot", APP_ID,
-                     APP_HASH).start(bot_token=BOT_TOKEN)
+bot = TelegramClient("pinterestbot", APP_ID, APP_HASH).start(bot_token=BOT_TOKEN)
 
 
 loop = asyncio.get_event_loop()
@@ -70,8 +70,7 @@ class pinterest_db:
         elif say > 1:
             cursor = self.collection.find(sorgu, {"_id": 0})
             return {
-                bak["uye_id"]: {"uye_nick": bak["uye_nick"],
-                                "uye_adi": bak["uye_adi"]}
+                bak["uye_id"]: {"uye_nick": bak["uye_nick"], "uye_adi": bak["uye_adi"]}
                 for bak in cursor
             }
         else:
@@ -93,8 +92,7 @@ class pinterest_db:
         if not self.ara({"uye_id": {"$in": [str(uye_id), int(uye_id)]}}):
             return None
 
-        self.collection.delete_one(
-            {"uye_id": {"$in": [str(uye_id), int(uye_id)]}})
+        self.collection.delete_one({"uye_id": {"$in": [str(uye_id), int(uye_id)]}})
         return True
 
     @property
@@ -126,7 +124,7 @@ async def say(event):
         return db.kullanici_idleri
 
     await event.client.send_message(
-        "By_Azade", f"ℹ️ `{len(KULLANICILAR())}` __Adet Kullanıcıya Sahipsin..__"
+        LOG, f"ℹ️ `{len(KULLANICILAR())}` __Adet Kullanıcıya Sahipsin..__"
     )
 
 
@@ -184,7 +182,7 @@ async def start(event):
     await log_yolla(event)
     j = await event.client(GetFullUserRequest(event.chat_id))
     mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-    await bot.send_message("By_Azade", mesaj)
+    await bot.send_message(LOG, mesaj)
     if event:
         markup = bot.build_reply_markup(
             [
@@ -210,7 +208,7 @@ async def vid(event):
     try:
         j = await event.client(GetFullUserRequest(event.chat_id))
         mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-        await bot.send_message("By_Azade", mesaj)
+        await bot.send_message(LOG, mesaj)
         markup = bot.build_reply_markup(
             [
                 [
@@ -297,7 +295,7 @@ async def img(event):
     await log_yolla(event)
     j = await event.client(GetFullUserRequest(event.chat_id))
     mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-    await bot.send_message("By_Azade", mesaj)
+    await bot.send_message(LOG, mesaj)
     markup = bot.build_reply_markup(
         [
             [
@@ -396,7 +394,7 @@ async def ana(event):
     await event.edit(msg, buttons=markup, link_preview=False)
 
 
-async def run_command(command: List[str]) -> (str, str):
+async def run_command(command: List[str]) -> Tuple[str, str]:
     process = await asyncio.create_subprocess_exec(
         *command,
         # stdout must a pipe to be accessible as process.stdout
@@ -439,7 +437,7 @@ def humanbytes(size):
     if not size:
         return ""
     # 2 ** 10 = 1024
-    power = 2 ** 10
+    power = 2**10
     raised_to_pow = 0
     dict_power_n = {0: "", 1: "Ki", 2: "Mi", 3: "Gi", 4: "Ti"}
     while size > power:
@@ -454,8 +452,7 @@ def time_formatter(seconds: int) -> str:
     result = ""
     v_m = 0
     remainder = seconds
-    r_ange_s = {"days": 24 * 60 * 60, "hours": 60 **
-                2, "minutes": 60, "seconds": 1}
+    r_ange_s = {"days": 24 * 60 * 60, "hours": 60**2, "minutes": 60, "seconds": 1}
     for age, divisor in r_ange_s.items():
         v_m, remainder = divmod(remainder, divisor)
         v_m = int(v_m)
@@ -483,8 +480,7 @@ async def progress(current, total, event, start, type_of_ps):
             round(percentage, 2),
         )
         tmp = progress_str + "{0} of {1}\nETA: {2}".format(
-            humanbytes(current), humanbytes(
-                total), time_formatter(estimated_total_time)
+            humanbytes(current), humanbytes(total), time_formatter(estimated_total_time)
         )
         await event.edit("{}\n {}".format(type_of_ps, tmp))
 

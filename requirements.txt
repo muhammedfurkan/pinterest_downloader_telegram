@@ -1,5 +1,5 @@
 telethon
-cryptg
+telethon-tgcrypto
 hachoir
 pyquery
 urllib3
