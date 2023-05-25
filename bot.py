@@ -2,7 +2,6 @@ import asyncio
 import logging
 import math
 import os
-import re
 import time
 from typing import List, Tuple
 from urllib import request
@@ -11,10 +10,8 @@ import pymongo
 import requests
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
-from pymongo import MongoClient
 from pyquery import PyQuery as pq
 from telethon import TelegramClient, events
-from telethon.sync import TelegramClient
 from telethon.tl.custom import Button
 from telethon.tl.functions.users import GetFullUserRequest
 from telethon.tl.types import DocumentAttributeVideo
@@ -226,7 +223,6 @@ async def vid(event):
             get_url = get_download_url(url)
             # await loop.run_in_executor(None, download_video(get_url))
             j = await loop.run_in_executor(None, download_video, get_url)
-            # j = download_video(get_url)
             thumb_image_path = TMP_DOWNLOAD_DIRECTORY + "thumb_image.jpg"
 
             if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
@@ -312,7 +308,6 @@ async def img(event):
         )
         get_url = get_download_url(url)
         j = await loop.run_in_executor(None, download_video, get_url)
-        # j = download_image(get_url)
 
         if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
             os.makedirs(TMP_DOWNLOAD_DIRECTORY)
@@ -421,7 +416,6 @@ async def take_screen_shot(video_file, output_directory, ttl):
         "1",
         out_put_file_name,
     ]
-    # width = "90"
     t_response, e_response = await run_command(file_genertor_command)
     if os.path.lexists(out_put_file_name):
         return out_put_file_name
