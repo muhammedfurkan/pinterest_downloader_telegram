@@ -1,0 +1,50 @@
+{
+    "name": "pinterest_downloader_telegram",
+    "description": "pinterest downloader!",
+    "logo": "https://i.imgur.com/dePcvmz.jpg",
+    "keywords": [
+        "telegram",
+        "pinterest",
+        "download",
+        "video",
+        "image"
+    ],
+    "repository": "https://github.com/muhammedfurkan/TelethonUserBot",
+    "website": "https://telegram.dog/KanalLinkleri",
+    "success_url": "https://t.me/KanalLinkleri",
+    "env": {
+        "ENV": {
+            "description": "Setting this to ANYTHING will enable environment variables.",
+            "value": "ANYTHING",
+            "required": true
+        },
+        "APP_ID": {
+            "description": "Get this value from my.telegram.org! Please do not steal",
+            "value": "",
+            "required": true
+        },
+        "API_HASH": {
+            "description": "Get this value from my.telegram.org! Please do not steal",
+            "value": "",
+            "required": true
+        },
+        "TMP_DOWNLOAD_DIRECTORY": {
+            "description": "This is required for the plugins involving the file system.",
+            "value": "./DOWNLOADS/",
+            "required": false
+        },
+        "BOT_TOKEN": {
+            "description": "Telegram Bot Token frim @Botfather",
+            "value": "",
+            "required": true
+        }
+    },
+    "buildpacks": [
+        {
+            "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
+        },
+        {
+            "url": "heroku/python"
+        }
+    ]
+}
