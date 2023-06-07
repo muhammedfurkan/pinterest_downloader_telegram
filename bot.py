@@ -1,17 +1,22 @@
 import asyncio
+import importlib
 import logging
 import math
 import os
+import re
 import time
-from typing import List, Tuple
+from typing import List
 from urllib import request
 
+import aiohttp
 import pymongo
 import requests
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
+from pymongo import MongoClient
 from pyquery import PyQuery as pq
 from telethon import TelegramClient, events
+from telethon.sync import TelegramClient
 from telethon.tl.custom import Button
 from telethon.tl.functions.users import GetFullUserRequest
 from telethon.tl.types import DocumentAttributeVideo
@@ -22,18 +27,57 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-APP_ID = os.environ.get("APP_ID", None)
-APP_HASH = os.environ.get("APP_HASH", None)
-BOT_TOKEN = os.environ.get("BOT_TOKEN", None)
-TMP_DOWNLOAD_DIRECTORY = os.environ.get("TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/")
-MONGO_DB = os.environ.get("MONGO_DB", None)
-# type yout telegram id or username
-LOG = os.environ.get("LOG", None)
+# Function to get download url
+async def get_download_url(link):
+    # Make request to website
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            "https://www.expertsphp.com/download.php", data={"url": link}
+        ) as response:
+            # Get content from post request
+            request_content = await response.read()
+            str_request_content = str(request_content, "utf-8")
+            return pq(str_request_content)("table.table-condensed")("tbody")("td")(
+                "a"
+            ).attr("href")
+
+
+# Function to download video
+async def download_video(url):
+    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
+        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            video_to_download = await response.read()
+            with open(
+                TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4", "wb"
+            ) as video_stream:
+                video_stream.write(video_to_download)
+    return TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4"
+
+
+# Function to download image
+async def download_image(url):
+    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
+        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            image_to_download = await response.read()
+            with open(
+                TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg", "wb"
+            ) as photo_stream:
+                photo_stream.write(image_to_download)
+    return TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg"
+
+
+APP_ID = 1221076
+APP_HASH = "73afbf8d848474280384a7d0d2784bc6"
+BOT_TOKEN = "1389516141:AAHSqKqR735IBgTgYAFPcf4wJYsHOZOuChU"
+TMP_DOWNLOAD_DIRECTORY = "./DOWNLOADS/"
+MONGO_DB = "mongodb+srv://yakazani:webmaster@cluster0-ambaf.mongodb.net/test?retryWrites=true&w=majority"
+
 
 bot = TelegramClient("pinterestbot", APP_ID, APP_HASH).start(bot_token=BOT_TOKEN)
-
-
-loop = asyncio.get_event_loop()
 
 msg = """
 Merhaba ben Pinterest üzerinden Video ve Resim indirebilen bir botum.
@@ -121,7 +165,7 @@ async def say(event):
         return db.kullanici_idleri
 
     await event.client.send_message(
-        LOG, f"ℹ️ `{len(KULLANICILAR())}` __Adet Kullanıcıya Sahipsin..__"
+        "By_Azade", f"ℹ️ `{len(KULLANICILAR())}` __Adet Kullanıcıya Sahipsin..__"
     )
 
 
@@ -179,7 +223,7 @@ async def start(event):
     await log_yolla(event)
     j = await event.client(GetFullUserRequest(event.chat_id))
     mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-    await bot.send_message(LOG, mesaj)
+    await bot.send_message("By_Azade", mesaj)
     if event:
         markup = bot.build_reply_markup(
             [
@@ -205,7 +249,7 @@ async def vid(event):
     try:
         j = await event.client(GetFullUserRequest(event.chat_id))
         mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-        await bot.send_message(LOG, mesaj)
+        await bot.send_message("By_Azade", mesaj)
         markup = bot.build_reply_markup(
             [
                 [
@@ -220,9 +264,34 @@ async def vid(event):
         if url:
             x = await event.reply("`işlem yapılıyor bekleyiniz...`")
 
-            get_url = get_download_url(url)
-            # await loop.run_in_executor(None, download_video(get_url))
-            j = await loop.run_in_executor(None, download_video, get_url)
+            # get_url = get_download_url(url)
+            pin_dl = importlib.import_module("pin")
+            pin_dl.run_library_main(
+                url,
+                TMP_DOWNLOAD_DIRECTORY,
+                0,
+                -1,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                True,
+                False,
+                None,
+                None,
+                None,
+            )
+            j = None
+            for file in os.listdir(TMP_DOWNLOAD_DIRECTORY):
+                if file.endswith(".log"):
+                    os.remove(f"{TMP_DOWNLOAD_DIRECTORY}/{file}")
+                    continue
+                if file.endswith(".mp4"):
+                    j = TMP_DOWNLOAD_DIRECTORY + file
+
+            # j = download_video(get_url)
             thumb_image_path = TMP_DOWNLOAD_DIRECTORY + "thumb_image.jpg"
 
             if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
@@ -276,7 +345,7 @@ async def vid(event):
             )
             await event.delete()
             await x.delete()
-            os.remove(TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4")
+            os.remove(j)
             os.remove(thumb_image_path)
         else:
             await event.reply(
@@ -291,7 +360,7 @@ async def img(event):
     await log_yolla(event)
     j = await event.client(GetFullUserRequest(event.chat_id))
     mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-    await bot.send_message(LOG, mesaj)
+    await bot.send_message("By_Azade", mesaj)
     markup = bot.build_reply_markup(
         [
             [
@@ -306,8 +375,33 @@ async def img(event):
         x = await event.reply(
             "`İşlem yapılıyor lütfen bekleyiniz...`\n\nProcessing please wait ..."
         )
-        get_url = get_download_url(url)
-        j = await loop.run_in_executor(None, download_video, get_url)
+        # get_url = await get_download_url(url)
+        # j = await download_image(get_url)
+        pin_dl = importlib.import_module("pin")
+        pin_dl.run_library_main(
+            url,
+            TMP_DOWNLOAD_DIRECTORY,
+            0,
+            -1,
+            False,
+            False,
+            False,
+            False,
+            False,
+            True,
+            False,
+            False,
+            None,
+            None,
+            None,
+        )
+        j = None
+        for file in os.listdir(TMP_DOWNLOAD_DIRECTORY):
+            if file.endswith(".log"):
+                os.remove(f"{TMP_DOWNLOAD_DIRECTORY}/{file}")
+                continue
+            if file.endswith(".jpg"):
+                j = TMP_DOWNLOAD_DIRECTORY + file
 
         if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
             os.makedirs(TMP_DOWNLOAD_DIRECTORY)
@@ -326,7 +420,7 @@ async def img(event):
         )
         await event.delete()
         await x.delete()
-        os.remove(TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg")
+        os.remove(j)
     else:
         await event.reply(
             "**bana komutla beraber link gönder.**\n\n`send me the link with the command.`"
@@ -347,8 +441,7 @@ async def digerbotlar(event):
     await event.edit(
         "**Diğer Botlarımız:**\n\n"
         + "📍 [A101 Katalog Bot](t.me/A101KatalogBot)\n"
-        + "📍 [Osmanlıca Bot](t.me/OsmanlicamBot)\n"
-        + "📍 [Döviz Bot](t.me/DovizRobot)\n"
+        + "📍 [Osmanlıca Bot](t.me/OsmanlicaBot)\n"
         + "📍 [Pinterest Video Resim İndirici Bot](t.me/A101KatalogBot)\n"
         + "📍 [Arşiv Çıkarıcı Bot](t.me/ExtractorRobot)\n"
         + "📍 [Vimeo Video İndirici Bot](t.me/vimeo_robot)\n"
@@ -359,13 +452,9 @@ async def digerbotlar(event):
         + "📍 [Youtube Playlist İndirici Bot](t.me/PlaylistIndirRobot)\n"
         + "📍 [Drive Upload Bot](t.me/driveyuklebot)\n"
         + "📍 [GoFile Upload Bot](t.me/GofileRobot)\n"
-        + "📍 [Bim Aktuel Ürünler Bot](t.me/BimAktuelBot)\n"
-        + "📍 [Dosya Ara Bot](t.me/DosyaAraBot)\n"
-        + "🆕 [Spotify & YouTube İndirici](t.me/YouTubeSpotifyMp3IndirBot)\n"
-        + "🆕 [Streamtape Bot](t.me/StreamTapeUploaderBot)\n"
-        + "🆕 [Şok Aktuel Bot](t.me/SokAktuelBot)\n",
-        link_preview=False,
+        + "📍 [Bim Aktuel Ürünler Bot](t.me/BimAktuelBot)\n",
         buttons=markup,
+        link_preview=False,
     )
 
 
@@ -389,7 +478,7 @@ async def ana(event):
     await event.edit(msg, buttons=markup, link_preview=False)
 
 
-async def run_command(command: List[str]) -> Tuple[str, str]:
+async def run_command(command: List[str]):
     process = await asyncio.create_subprocess_exec(
         *command,
         # stdout must a pipe to be accessible as process.stdout
@@ -398,8 +487,10 @@ async def run_command(command: List[str]) -> Tuple[str, str]:
     )
     # Wait for the subprocess to finish
     stdout, stderr = await process.communicate()
-    e_response = stderr.decode().strip()
-    t_response = stdout.decode().strip()
+    e_response: str = stderr.decode().strip()
+    t_response: str = stdout.decode().strip()
+    print(e_response)
+    print(t_response)
     return t_response, e_response
 
 
@@ -416,6 +507,7 @@ async def take_screen_shot(video_file, output_directory, ttl):
         "1",
         out_put_file_name,
     ]
+    # width = "90"
     t_response, e_response = await run_command(file_genertor_command)
     if os.path.lexists(out_put_file_name):
         return out_put_file_name
@@ -477,41 +569,6 @@ async def progress(current, total, event, start, type_of_ps):
             humanbytes(current), humanbytes(total), time_formatter(estimated_total_time)
         )
         await event.edit("{}\n {}".format(type_of_ps, tmp))
-
-
-# Function to get download url
-def get_download_url(link):
-    # Make request to website
-    post_request = requests.post(
-        "https://www.expertsphp.com/download.php", data={"url": link}
-    )
-
-    # Get content from post request
-    request_content = post_request.content
-    str_request_content = str(request_content, "utf-8")
-    return pq(str_request_content)("table.table-condensed")("tbody")("td")("a").attr(
-        "href"
-    )
-
-
-# Function to download video
-def download_video(url):
-    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
-        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
-    video_to_download = request.urlopen(url).read()
-    with open(TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4", "wb") as video_stream:
-        video_stream.write(video_to_download)
-    return TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4"
-
-
-# Function to download image
-def download_image(url):
-    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
-        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
-    image_to_download = request.urlopen(url).read()
-    with open(TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg", "wb") as photo_stream:
-        photo_stream.write(image_to_download)
-    return TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg"
 
 
 bot.start()
