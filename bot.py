@@ -77,6 +77,7 @@ TMP_DOWNLOAD_DIRECTORY = os.environ.get("TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/"
 MONGO_DB = os.environ.get("MONGO_DB", None)
 # type yout telegram id or username
 LOG = os.environ.get("LOG", None)
+ADMIN = os.environ.get(ADMIN, None)
 
 
 bot = TelegramClient("pinterestbot", APP_ID, APP_HASH).start(bot_token=BOT_TOKEN)
@@ -167,7 +168,7 @@ async def say(event):
         return db.kullanici_idleri
 
     await event.client.send_message(
-        "By_Azade", f"ℹ️ `{len(KULLANICILAR())}` __Adet Kullanıcıya Sahipsin..__"
+        ADMIN, f"ℹ️ `{len(KULLANICILAR())}` __Adet Kullanıcıya Sahipsin..__"
     )
 
 
@@ -225,13 +226,13 @@ async def start(event):
     await log_yolla(event)
     j = await event.client(GetFullUserRequest(event.chat_id))
     mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-    await bot.send_message("By_Azade", mesaj)
+    await bot.send_message(ADMIN, mesaj)
     if event:
         markup = bot.build_reply_markup(
             [
                 [
                     Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
-                    Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
+                    Button.url(text="👤 Yapımcı", url="t.me/ADMIN"),
                 ],
                 [
                     Button.url(
@@ -251,12 +252,12 @@ async def vid(event):
     try:
         j = await event.client(GetFullUserRequest(event.chat_id))
         mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-        await bot.send_message("By_Azade", mesaj)
+        await bot.send_message(ADMIN, mesaj)
         markup = bot.build_reply_markup(
             [
                 [
                     Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
-                    Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
+                    Button.url(text="👤 Yapımcı", url="t.me/ADMIN"),
                 ],
                 [Button.inline(text="🤖 Diğer Botlar", data="digerbotlar")],
             ]
@@ -362,12 +363,12 @@ async def img(event):
     await log_yolla(event)
     j = await event.client(GetFullUserRequest(event.chat_id))
     mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-    await bot.send_message("By_Azade", mesaj)
+    await bot.send_message(ADMIN, mesaj)
     markup = bot.build_reply_markup(
         [
             [
                 Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
-                Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
+                Button.url(text="👤 Yapımcı", url="t.me/ADMIN"),
             ],
             [Button.inline(text="🤖 Diğer Botlar", data="digerbotlar")],
         ]
@@ -435,7 +436,7 @@ async def digerbotlar(event):
         [
             [
                 Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
-                Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
+                Button.url(text="👤 Yapımcı", url="t.me/ADMIN"),
             ],
             [Button.inline(text="Ana Sayfa", data="ana")],
         ]
@@ -466,7 +467,7 @@ async def ana(event):
         [
             [
                 Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
-                Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
+                Button.url(text="👤 Yapımcı", url="t.me/ADMIN"),
             ],
             [
                 Button.url(
