@@ -148,7 +148,7 @@ async def log_yolla(event):
 # total number of users using the bot
 @bot.on(events.NewMessage(pattern="/kul_say"))
 async def say(event):
-    j = await event.client(GetFullUserRequest(event.chat_id))
+    j = await event.client.get_entity(event.chat_id)
 
     db = pinterest_db()
     db.ekle(j.user.id, j.user.username, j.user.first_name)
@@ -213,7 +213,7 @@ async def duyuru(event):
 @bot.on(events.NewMessage(pattern="/start", func=lambda e: e.is_private))
 async def start(event):
     await log_yolla(event)
-    j = await event.client(GetFullUserRequest(event.chat_id))
+    j = await event.client.get_entity(event.chat_id)
     mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
     await bot.send_message(ADMIN, mesaj)
     if event:
@@ -325,7 +325,7 @@ async def vid(event):
 @bot.on(events.NewMessage(pattern="/pimg ?(.*)", func=lambda e: e.is_private))
 async def img(event):
     await log_yolla(event)
-    j = await event.client(GetFullUserRequest(event.chat_id))
+    j = await event.client.get_entity(event.chat_id)
     mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
     await bot.send_message(ADMIN, mesaj)
     markup = bot.build_reply_markup(
