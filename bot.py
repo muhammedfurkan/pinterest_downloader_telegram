@@ -7,7 +7,7 @@ import re
 import time
 from typing import List
 from urllib import request
-
+import subprocess
 import aiohttp
 import pymongo
 import requests
@@ -42,18 +42,7 @@ async def get_download_url(link):
             ).attr("href")
 
 
-# Function to download video
-async def download_video(url):
-    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
-        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            video_to_download = await response.read()
-            with open(
-                TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4", "wb"
-            ) as video_stream:
-                video_stream.write(video_to_download)
-    return TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4"
+
 
 
 # Function to download image
@@ -249,15 +238,17 @@ async def start(event):
 @bot.on(events.NewMessage(pattern="/pvid ?(.*)", func=lambda e: e.is_private))
 async def vid(event):
     await log_yolla(event)
+    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
+        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
     try:
-        j = await event.client(GetFullUserRequest(event.chat_id))
-        mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-        await bot.send_message(ADMIN, mesaj)
+        j = await event.client.get_entity(event.chat_id)
+        mesaj = f"Gönderen [{j.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
+        await bot.send_message("By_Azade", mesaj)
         markup = bot.build_reply_markup(
             [
                 [
                     Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
-                    Button.url(text="👤 Yapımcı", url="t.me/ADMIN"),
+                    Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
                 ],
                 [Button.inline(text="🤖 Diğer Botlar", data="digerbotlar")],
             ]
@@ -266,40 +257,12 @@ async def vid(event):
         url = event.pattern_match.group(1)
         if url:
             x = await event.reply("`işlem yapılıyor bekleyiniz...`")
-
-            # get_url = get_download_url(url)
-            pin_dl = importlib.import_module("pin")
-            pin_dl.run_library_main(
-                url,
-                TMP_DOWNLOAD_DIRECTORY,
-                0,
-                -1,
-                False,
-                False,
-                False,
-                False,
-                False,
-                False,
-                True,
-                False,
-                None,
-                None,
-                None,
+            komut = (
+                f"yt-dlp -o '{TMP_DOWNLOAD_DIRECTORY}/pinterest_video.%(ext)s' {url}"
             )
-            j = None
-            for file in os.listdir(TMP_DOWNLOAD_DIRECTORY):
-                if file.endswith(".log"):
-                    os.remove(f"{TMP_DOWNLOAD_DIRECTORY}/{file}")
-                    continue
-                if file.endswith(".mp4"):
-                    j = TMP_DOWNLOAD_DIRECTORY + file
-
-            # j = download_video(get_url)
+            subprocess.call(komut, shell=True)
             thumb_image_path = TMP_DOWNLOAD_DIRECTORY + "thumb_image.jpg"
-
-            if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
-                os.makedirs(TMP_DOWNLOAD_DIRECTORY)
-
+            j = TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4"
             metadata = extractMetadata(createParser(j))
             duration = 0
 
@@ -348,7 +311,7 @@ async def vid(event):
             )
             await event.delete()
             await x.delete()
-            os.remove(j)
+            os.remove(TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4")
             os.remove(thumb_image_path)
         else:
             await event.reply(
@@ -356,6 +319,7 @@ async def vid(event):
             )
     except FileNotFoundError:
         return
+
 
 
 @bot.on(events.NewMessage(pattern="/pimg ?(.*)", func=lambda e: e.is_private))
