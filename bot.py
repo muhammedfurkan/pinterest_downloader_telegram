@@ -154,7 +154,7 @@ async def img(event):
         )
         # get_url = await get_download_url(url)
         # j = await download_image(get_url)
-        pin_dl = importlib.import_module("pin1")
+        pin_dl = importlib.import_module("pin")
         pin_dl.run_library_main(
             url,
             TMP_DOWNLOAD_DIRECTORY,
@@ -180,7 +180,7 @@ async def img(event):
             if file.endswith(".jpg"):
                 j = TMP_DOWNLOAD_DIRECTORY + file
 
-        if notos.path.isdir(TMP_DOWNLOAD_DIRECTORY):
+        if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
             os.makedirs(TMP_DOWNLOAD_DIRECTORY)
         c_time = time.time()
         await event.client.send_file(
