@@ -67,13 +67,6 @@ bot = TelegramClient("pinterestbot", APP_ID, APP_HASH).start(bot_token=BOT_TOKEN
 
 
 
-async def log_yolla(event):
-    j = await event.client.get_input_entity(event.chat_id)
-    print(j, "j--------------------------------")
-    uye_id = j.id
-    uye_nick = f"@{j.username}" if j.username else None
-    uye_adi = f"{j.first_name or ''} {j.last_name or ''}".strip()
-    komut = event.text
 
 @bot.on(events.NewMessage(pattern="/pvdl ?(.*)", func=lambda e: e.is_private))
 async def vid(event):
@@ -81,7 +74,7 @@ async def vid(event):
         os.makedirs(TMP_DOWNLOAD_DIRECTORY)
     try:
         j = await event.client.get_entity(event.chat_id)
-        mm = f"👤User : [{j.first_name}](tg://user?id={event.chat_id})\n🪧**Message** : {event.message.message}"
+        mm = f"👤**User** : [{j.first_name}](tg://user?id={event.chat_id})\n👻**User Name** : @{j.username}\n🪧**Message** : {event.message.message}"
         await bot.send_message(LOG_CHANNEL, mm)
         url = event.pattern_match.group(1)
         markup = bot.build_reply_markup(
