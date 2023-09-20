@@ -54,17 +54,6 @@ async def download_image(url):
                 photo_stream.write(image_to_download)
     return TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg"
 
-async def download_video(url):
-    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
-        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            video_to_download = await response.read()
-            with open(
-                TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4", "wb"
-            ) as video_stream:
-                video_stream.write(video_to_download)
-    return TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4"
 
 APP_ID = os.environ.get("APP_ID", None)
 APP_HASH = os.environ.get("APP_HASH", None)
