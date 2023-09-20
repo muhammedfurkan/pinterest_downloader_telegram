@@ -53,7 +53,19 @@ async def download_image(url):
             ) as photo_stream:
                 photo_stream.write(image_to_download)
     return TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg"
-
+    
+# Function to download video
+async def download_video(url):
+    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
+        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            video_to_download = await response.read()
+            with open(
+                TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4", "wb"
+            ) as video_stream:
+                video_stream.write(video_to_download)
+    return TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4"
 
 APP_ID = os.environ.get("APP_ID", None)
 APP_HASH = os.environ.get("APP_HASH", None)
@@ -106,7 +118,7 @@ async def vid(event):
                 event.chat_id,
                 j,
                 thumb=thumb,
-                caption="**@musicx_dlbot**",
+                caption="**Downloaded by @Pinterestdown_Robot**",
                 force_document=False,
                 allow_cache=False,
                 reply_to=event.message.id,
@@ -175,7 +187,7 @@ async def img(event):
         await event.client.send_file(
             event.chat_id,
             j,
-            caption="**@MusicX_dlbot**",
+            caption="**Downloaded by @Pinterestdown_Robot**",
             force_document=False,
             allow_cache=False,
             reply_to=event.message.id,
@@ -190,6 +202,8 @@ async def img(event):
         await event.reply(
             "**bana komutla beraber link gönder.**\n\n`send me the link with the command.`"
         )
+
+
 
 async def run_command(command: List[str]):
     process = await asyncio.create_subprocess_exec(
