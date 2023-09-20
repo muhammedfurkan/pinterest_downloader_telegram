@@ -77,7 +77,6 @@ bot = TelegramClient("pinterestbot", APP_ID, APP_HASH).start(bot_token=BOT_TOKEN
 
 @bot.on(events.NewMessage(pattern="/pvid ?(.*)", func=lambda e: e.is_private))
 async def vid(event):
-    await log_yolla(event)
     if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
         os.makedirs(TMP_DOWNLOAD_DIRECTORY)
     try:
@@ -148,7 +147,6 @@ async def vid(event):
 
 @bot.on(events.NewMessage(pattern="/pimg ?(.*)", func=lambda e: e.is_private))
 async def img(event):
-    await log_yolla(event)
     url = event.pattern_match.group(1)
     if url:
         x = await event.reply(
