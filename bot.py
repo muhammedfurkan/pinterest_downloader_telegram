@@ -70,17 +70,16 @@ async def vid(event):
     if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
         os.makedirs(TMP_DOWNLOAD_DIRECTORY)
     try:
+        url = event.pattern_match.group(1)
         markup = bot.build_reply_markup(
             [
                 [
-                    Button.url(text="Kanal Linki", url="t.me/KanalLinkleri"),
+                    Button.url(text="Open on Pinterest", url=f"{url}"),
                 ]
             ]
         )
-
-        url = event.pattern_match.group(1)
         if url:
-            x = await event.reply("Processing is in progress, please wait")
+            x = await event.reply("🔎")
             komut = (
                 f"yt-dlp -o '{TMP_DOWNLOAD_DIRECTORY}/pinterest_video.%(ext)s' {url}"
             )
@@ -115,7 +114,7 @@ async def vid(event):
                 event.chat_id,
                 j,
                 thumb=thumb,
-                caption="Downloaded by **@Pinterestdown_Robot**",
+                caption="**Downloaded via 𝗠ᴜsɪᴄ•𝕏•𝗗ʟ**\n\n**©️ @Musicx_dlbot**",
                 force_document=False,
                 allow_cache=False,
                 reply_to=event.message.id,
@@ -133,7 +132,7 @@ async def vid(event):
                     progress(d, t, event, c_time, "Loading...")
                 ),
             )
-            await event.delete()
+            #await event.delete()
             await x.delete()
             os.remove(TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4")
             os.remove(thumb_image_path)
@@ -148,12 +147,19 @@ async def vid(event):
 @bot.on(events.NewMessage(pattern="/pimg ?(.*)", func=lambda e: e.is_private))
 async def img(event):
     url = event.pattern_match.group(1)
+    markup = bot.build_reply_markup(
+            [
+                [
+                    Button.url(text="Open on Pinterest", url=f"{url}"),
+                ]
+            ]
+        )
+
     if url:
         x = await event.reply(
-            "Processing please wait ..."
+            "🔎"
         )
-        # get_url = await get_download_url(url)
-        # j = await download_image(get_url)
+        
         pin_dl = importlib.import_module("pin")
         pin_dl.run_library_main(
             url,
@@ -186,15 +192,16 @@ async def img(event):
         await event.client.send_file(
             event.chat_id,
             j,
-            caption="**Downloaded by @Pinterestdown_Robot**",
+            caption="**Downloaded via 𝗠ᴜsɪᴄ•𝕏•𝗗ʟ**\n\n**©️ @Musicx_dlbot**",
             force_document=False,
             allow_cache=False,
             reply_to=event.message.id,
+            buttons=markup,
             progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
                 progress(d, t, event, c_time, "Loading....")
             ),
         )
-        await event.delete()
+        #await event.delete()
         await x.delete()
         os.remove(j)
     else:
