@@ -74,7 +74,7 @@ async def vid(event):
         os.makedirs(TMP_DOWNLOAD_DIRECTORY)
     try:
         j = await event.client.get_entity(event.chat_id)
-        mm = f"👤**User** : [{j.first_name}](tg://user?id={event.chat_id})\n👻**User Name** : @{j.username}\n🪧**Message** : {event.message.message}"
+        mm = f"👤**User** : [{j.first_name}](tg://user?id={event.chat_id})\n👻**User Name** : @{j.username}\n🪧**Message** : {event.message.message}\n\n#Pinterest #videoDl"
         await bot.send_message(LOG_CHANNEL, mm)
         url = event.pattern_match.group(1)
         markup = bot.build_reply_markup(
@@ -152,6 +152,9 @@ async def vid(event):
 
 @bot.on(events.NewMessage(pattern="/pidl ?(.*)", func=lambda e: e.is_private))
 async def img(event):
+    j = await event.client.get_entity(event.chat_id)
+    mm = f"👤**User** : [{j.first_name}](tg://user?id={event.chat_id})\n👻**User Name** : @{j.username}\n🪧**Message** : {event.message.message}\n\n#Pinterest #ImageDl"
+    await bot.send_message(LOG_CHANNEL, mm)
     url = event.pattern_match.group(1)
     markup = bot.build_reply_markup(
             [
