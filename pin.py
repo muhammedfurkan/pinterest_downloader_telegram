@@ -61,7 +61,7 @@ def quit(msgs, exit=True):
         if msg == '\n':
             print('\n')
         else:
-            cprint(''.join([ HIGHER_RED, '%s' % (msg) ]), attrs=BOLD_ONLY, end='\n' )
+            cprint(''.join([HIGHER_RED, f'{msg}']), attrs=BOLD_ONLY, end='\n')
 
 try:
     x_tag = '✖'
@@ -71,10 +71,19 @@ try:
     # Test Windows unicode capability by printing logo, throws if not:
     print(pinterest_logo, end=ANSI_CLEAR, flush=True)
 except Exception: #UnicodeEncodeError: # Will error later if not do this, so better quit() early
-    cprint(''.join([ HIGHER_RED, '%s' % ('Please run `export PYTHONIOENCODING=utf-8;` to support Unicode.') ]), attrs=BOLD_ONLY, end='\n' )
+    cprint(
+        ''.join(
+            [
+                HIGHER_RED,
+                'Please run `export PYTHONIOENCODING=utf-8;` to support Unicode.',
+            ]
+        ),
+        attrs=BOLD_ONLY,
+        end='\n',
+    )
     quit('')
     sys.exit(1)
-     
+
 import argparse
 import time
 from datetime import datetime, timedelta
@@ -121,7 +130,16 @@ def printProgressBar(iteration, total, prefix='', suffix='', decimals=1, length=
         filledLength = int(length * iteration // total)
         bar = fill * filledLength + '-' * (length - filledLength)
         #sys.stdout.write('\r{} |{}| {}%% {}'.format(prefix, bar, percent, suffix))
-        cprint(''.join([ HIGHER_GREEN, '%s' % ('\r{} |{}| {}% {}'.format(prefix, bar, percent, suffix)) ]), attrs=BOLD_ONLY, end='' )
+        cprint(
+            ''.join(
+                [
+                    HIGHER_GREEN,
+                    '%s' % f'\r{prefix} |{bar}| {percent}% {suffix}',
+                ]
+            ),
+            attrs=BOLD_ONLY,
+            end='',
+        )
         sys.stdout.flush()
 
 #imgs:
@@ -216,7 +234,7 @@ def get_session(ver_i, proxies, cookie_file):
 
 def dj(j, tag=None):
     if tag:
-        print('### [' + tag + '] ###')
+        print(f'### [{tag}] ###')
     print(json.dumps(j, sort_keys=True, indent=4))
 
 def get_pin_info(pin_id, arg_timestamp_log, url_path
@@ -243,9 +261,13 @@ def get_pin_info(pin_id, arg_timestamp_log, url_path
             cookies = cookiejar_from_dict(cookies)
         except:
             cookies = None
-        
+
         try:
-            r = PIN_SESSION.get('https://www.pinterest.com/pin/{}/'.format(pin_id), timeout=(t, t), cookies=cookies)
+            r = PIN_SESSION.get(
+                f'https://www.pinterest.com/pin/{pin_id}/',
+                timeout=(t, t),
+                cookies=cookies,
+            )
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
             #print('[E1][pin] Failed. Retry after 5 seconds...')
             time.sleep(5)
@@ -270,13 +292,13 @@ def get_pin_info(pin_id, arg_timestamp_log, url_path
                 data = json.loads(script)
                 try:
                     _image_url = data['response']['data']['v3GetPinQuery']['data']['imageSpec_orig']['url']
-                    print("found v3GetPinQuery:", _image_url)      
+                    print("found v3GetPinQuery:", _image_url)
                     _id = "an_id"
                     _split = _image_url.split("/")
                     if len(_split) > 0:
                         _split = _split[-1].split(".")
-                        if len(_split) > 0:
-                            _id = _split[0]
+                    if len(_split) > 0:
+                        _id = _split[0]
                     if image is None:
                         image = {}
                     image["id"] = _id
@@ -306,11 +328,9 @@ def get_pin_info(pin_id, arg_timestamp_log, url_path
             except json.decoder.JSONDecodeError:
                 pass
 
-        if not is_success:
-            if indexErr:
+        if indexErr:
+            if not is_success:
                 print('\n[Retry] Getting error pin id: ' + repr(pin_id) + '...\n\n')
-            continue
-
     if not is_success:
         if not get_data_only: # get data error show later
             print('### HTML START ###')
@@ -331,7 +351,13 @@ def get_pin_info(pin_id, arg_timestamp_log, url_path
         print('[i] Download Pin id: ' + str(image['id']) + ' into directory: ' + arg_dir.rstrip(os.sep) + os.sep)
         printProgressBar(0, 1, prefix='[...] Downloading:', suffix='Complete', length=50)
         download_img(image, arg_dir, arg_force_update, arg_img_only, arg_v_only, IMG_SESSION, V_SESSION, PIN_SESSION, proxies, cookie_file, arg_cut, arg_el, fs_f_max)
-        printProgressBar(1, 1, prefix='[' + done_tag + '] Downloaded:', suffix='Complete   ', length=50)
+        printProgressBar(
+            1,
+            1,
+            prefix=f'[{done_tag}] Downloaded:',
+            suffix='Complete   ',
+            length=50,
+        )
     except KeyError:
         return quit(traceback.format_exc())
     print()
@@ -346,10 +372,10 @@ def get_board_info(board_or_sec_path, exclude_section, section, board_path, prox
         cookies = cookiejar_from_dict(cookies)
     except:
         cookies = None
-        
+
     s = get_session(0, proxies, cookies)
     #s.cookies = cookies
-    
+
     #dj(data, 'board main')
     boards = {}
     sections = []
@@ -367,7 +393,11 @@ def get_board_info(board_or_sec_path, exclude_section, section, board_path, prox
         except:
             cookies = None
         try:
-            r = s.get('https://www.pinterest.com/{}/'.format(board_or_sec_path), timeout=(t, t), cookies=cookies)
+            r = s.get(
+                f'https://www.pinterest.com/{board_or_sec_path}/',
+                timeout=(t, t),
+                cookies=cookies,
+            )
             is_success = True
             break
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
@@ -394,25 +424,17 @@ def get_board_info(board_or_sec_path, exclude_section, section, board_path, prox
                     break
             except json.decoder.JSONDecodeError:
                 is_success = False
-            
+
     if not is_success:
         cprint(''.join([ HIGHER_RED, '%s %s%s' % ('\n[' + x_tag 
             + '] Get this board/section failed :', board_or_sec_path, '\n') ]), attrs=BOLD_ONLY, end='' )
-        if section:
-            return boards
-        else:
-            return boards, sections
-
+        return boards if section else (boards, sections)
     board_dk = list(board_d.keys())
-    if section:
-        path_to_compare = board_path
-    else:
-        path_to_compare = board_or_sec_path
+    path_to_compare = board_path if section else board_or_sec_path
     for k in board_dk:
         if unquote(board_d[k].get('url', '').strip('/')) == unquote(path_to_compare):
             b_dk = board_d[k]
-            board_d_map = {}
-            board_d_map['url'] = b_dk.get('url', '')
+            board_d_map = {'url': b_dk.get('url', '')}
             #board_d_map['modified_at'] = b_dk.get('board_order_modified_at', '')
             #print('Board modified: ' + repr(board_d_map['modified_at']))
             #dj(b_dk, 'board d') # [todo:0] board_order_modified_at help decide re-scrape?
@@ -421,38 +443,30 @@ def get_board_info(board_or_sec_path, exclude_section, section, board_path, prox
             board_d_map['section_count'] = b_dk.get('section_count', '')
             boards['board'] = board_d_map;
             break
-        
+
     if not exclude_section:
         board_sec_dk = list(board_sec_d.keys())
         for k in board_sec_dk:
             b_dk = board_sec_d[k]
-            sec_d_map = {}
             #dj(b_dk)
             sec_slug = unquote(b_dk.get('slug', ''))
             if section and (sec_slug != section):
                 continue
 
-            #sec_d_map['modified_at'] = b_dk.get('board_order_modified_at', '')
-            #print('Section modified: ' + repr(sec_d_map['modified_at']))
-
-            sec_d_map['slug'] = sec_slug
-            sec_d_map['id'] = b_dk.get('id', '')
+            sec_d_map = {'slug': sec_slug, 'id': b_dk.get('id', '')}
             sec_d_map['title'] = b_dk.get('title', '')
 
             if section:
                 boards['section'] = sec_d_map
             else:
                 sections.append(sec_d_map)
-            
+
     #dj(board_d, 'board raw')
     #dj(boards, 'boarded')
     #dj(board_sec_d, 'sect raw')
     #dj(sections, 'sectioned')
 
-    if section:
-        return boards
-    else:
-        return boards, sections
+    return boards if section else (boards, sections)
 
 def fetch_boards(uname, proxies, cookie_file):
 
@@ -465,7 +479,7 @@ def fetch_boards(uname, proxies, cookie_file):
         cookies = cookiejar_from_dict(cookies)
     except:
         cookies = None
-        
+
     s = get_session(1, proxies, cookies)
     #s.cookies = cookies
 
@@ -492,13 +506,10 @@ def fetch_boards(uname, proxies, cookie_file):
         }
 
         if bookmark:
-            options.update({
-                'bookmarks': [bookmark],
-            })
+            options['bookmarks'] = [bookmark]
 
         b_len = len(boards) - 1
-        if b_len < 0:
-            b_len = 0
+        b_len = max(b_len, 0)
         # Got end='' here to make flush work
         print('\r[...] Getting all boards [ ' + str(b_len) + ' / ? ]' , end='')
         sys.stdout.flush()
@@ -549,7 +560,7 @@ def fetch_boards(uname, proxies, cookie_file):
             break
 
     b_len = len(boards)
-    print('[' + plus_tag + '] Found {} Board{}.'.format(b_len, 's' if b_len > 1 else ''))
+    print(f'[{plus_tag}' + f"] Found {b_len} Board{'s' if b_len > 1 else ''}.")
 
     return boards
 
@@ -561,7 +572,7 @@ def sanitize(path):
     #>>> os.path.basename('/home/iced/..'.replace('..', '')) # get empty ''
     # Ensure .replace('..', '') is last replacement before .strip() AND not replace back to dot '.'
     # https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
-    
+
     # [todo:0] Handle case sensitive and reserved file names in Windows like Chrome "Save page as" do
     # For portable to move filename between linux <-> win, should use IS_WIN only (but still can't care if case sensitive filename move to case in-sensitive filesystem). 
     # IS_WIN:
@@ -575,10 +586,7 @@ def sanitize(path):
 
     p = PurePath( path )
 
-    if p.parts:
-        return p.parts[-1]
-    else:
-        return ''
+    return p.parts[-1] if p.parts else ''
 
 # The filesystem limits is 255(normal) , 242(docker) or 143((eCryptfs) bytes
 # So can't blindly [:] slice without encode first (which most downloaders do the wrong way)
@@ -597,12 +605,7 @@ def get_max_path(arg_cut, fs_f_max, fpart_excluded_immutable, immutable):
     #print('before f: ' + fpart_excluded_immutable)
     if arg_cut >= 0:
         fpart_excluded_immutable = fpart_excluded_immutable[:arg_cut]
-    if immutable:
-        # immutable shouldn't limit to 1 byte(may be change next time or next project), so need encode also
-        immutable_len = len(immutable.encode('utf-8'))
-    else:
-        immutable_len = 0
-
+    immutable_len = len(immutable.encode('utf-8')) if immutable else 0
     space_remains = fs_f_max - immutable_len
     if space_remains < 1:
         return '' # No more spaces to trim(bcoz directories name too long), so only shows PinID.jpg
@@ -621,7 +624,7 @@ def get_max_path(arg_cut, fs_f_max, fpart_excluded_immutable, immutable):
     if fpart_excluded_immutable_base != fpart_excluded_immutable.strip(): # Original need strip bcoz it might cut in space
         cprint(''.join([ HIGHER_RED, '\n[! A] Please report to me which Link/scenario it print this log.\
             Thanks:\n{} # {} # {} # {} # {}\n\n'
-            .format(arg_cut, fs_f_max, repr(fpart_excluded_immutable), repr(fpart_excluded_immutable_base), immutable) ]), attrs=BOLD_ONLY, end='' )  
+            .format(arg_cut, fs_f_max, repr(fpart_excluded_immutable), repr(fpart_excluded_immutable_base), immutable) ]), attrs=BOLD_ONLY, end='' )
     return fpart_excluded_immutable_base
 
 def get_output_file_path(url, arg_cut, fs_f_max, image_id, human_fname, save_dir):
@@ -638,8 +641,8 @@ def get_output_file_path(url, arg_cut, fs_f_max, image_id, human_fname, save_dir
     if not ext.strip(): # Ensure add hard-coded extension to avoid empty id and leave single dot in next step
         ext = 'unknown'
     # Currently not possible ..jpg here bcoz above must single '.' do not throws
-    # , even replace ..jpg to _.jpg is fine, just can't preview in explorer only 
-    immutable = sanitize( pin_id_str + '.' +  ext )
+    # , even replace ..jpg to _.jpg is fine, just can't preview in explorer only
+    immutable = sanitize(f'{pin_id_str}.{ext}')
 
     fpart_excluded_ext_before  = sanitize( human_fname )
     #print( 'get output f:' + repr(fpart_excluded_ext_before) )
@@ -653,15 +656,10 @@ def get_output_file_path(url, arg_cut, fs_f_max, image_id, human_fname, save_dir
     fpart_excluded_ext = get_max_path(arg_cut, fs_f_max, fpart_excluded_ext_before
             , immutable)
     if fpart_excluded_ext:
-        if fpart_excluded_ext_before == fpart_excluded_ext: # means not truncat
-            # Prevent confuse when trailing period become '..'ext and looks like '...'
-            if fpart_excluded_ext[-1] == '.':
-                fpart_excluded_ext = fpart_excluded_ext[:-1]
-        else: # Truncated
-            # No need care if two/three/... dots, overkill to trim more and loss information
-            if fpart_excluded_ext[-1] == '.':
-                fpart_excluded_ext = fpart_excluded_ext[:-1]
-
+        # Prevent confuse when trailing period become '..'ext and looks like '...'
+        if fpart_excluded_ext[-1] == '.':
+            fpart_excluded_ext = fpart_excluded_ext[:-1]
+        if fpart_excluded_ext_before != fpart_excluded_ext:
             #if IS_WIN: # [DEPRECATED] Now always use -el
             #    # Need set ... here, not abspath below which trimmed ... if ... at the end.
             #    # Also ensures sanitize replace single '.', not '..' which causes number not equal after added ... later
@@ -670,14 +668,19 @@ def get_output_file_path(url, arg_cut, fs_f_max, image_id, human_fname, save_dir
             #    fpart_excluded_ext = get_max_path(arg_cut, fs_f_max, fpart_excluded_ext_before
             #            , immutable_file_path)
             #else:
-            fpart_excluded_ext = get_max_path(arg_cut, fs_f_max, fpart_excluded_ext
-                , '...' + immutable)
+            fpart_excluded_ext = get_max_path(
+                arg_cut, fs_f_max, fpart_excluded_ext, f'...{immutable}'
+            )
 
-            fpart_excluded_ext = fpart_excluded_ext + '...'
+            fpart_excluded_ext = f'{fpart_excluded_ext}...'
 
     # To make final output path consistent with IS_WIN's abspath above, so also do abspath here:
     # (Please ensure below PurePath's file_path checking is using abspath if remove abspath here in future)
-    file_path = os.path.abspath( os.path.join(save_dir, '{}'.format( pin_id_str + fpart_excluded_ext + '.' +  ext)) )
+    file_path = os.path.abspath(
+        os.path.join(
+            save_dir, f"{pin_id_str + fpart_excluded_ext + '.' + ext}"
+        )
+    )
     #if '111' in file_path:
     #    print('last fp: ' + file_path + ' len: ' + str(len(file_path.encode('utf-8'))))
     try:
@@ -686,8 +689,11 @@ def get_output_file_path(url, arg_cut, fs_f_max, image_id, human_fname, save_dir
         if PurePath(os.path.abspath(save_dir)).parts[:] != PurePath(file_path).parts[:-1]:
             cprint(''.join([ HIGHER_RED, '\n[! B] Please report to me which Link/scenario it print this log.\
                 Thanks: {} # {} # {} # {} # {} \n\n'
-                .format(arg_cut, fs_f_max, pin_id_str + fpart_excluded_ext + '.' +  ext, save_dir, file_path) ]), attrs=BOLD_ONLY, end='' )  
-            file_path = os.path.join(save_dir, '{}'.format( sanitize(pin_id_str + fpart_excluded_ext + '.' +  ext)))
+                .format(arg_cut, fs_f_max, pin_id_str + fpart_excluded_ext + '.' +  ext, save_dir, file_path) ]), attrs=BOLD_ONLY, end='' )
+            file_path = os.path.join(
+                save_dir,
+                f"{sanitize(pin_id_str + fpart_excluded_ext + '.' + ext)}",
+            )
             if PurePath(os.path.abspath(save_dir)).parts[:] != PurePath(file_path).parts[:-1]:
                 cprint(''.join([ HIGHER_RED, '\n[! C] Please report to me which Link/scenario it print this log.\
                     Thanks: {} # {} # {} # {} # {} \n\n'

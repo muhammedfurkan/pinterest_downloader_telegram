@@ -50,11 +50,9 @@ async def download_image(url):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             image_to_download = await response.read()
-            with open(
-                TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg", "wb"
-            ) as photo_stream:
+            with open(f"{TMP_DOWNLOAD_DIRECTORY}pinterest_iamge.jpg", "wb") as photo_stream:
                 photo_stream.write(image_to_download)
-    return TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg"
+    return f"{TMP_DOWNLOAD_DIRECTORY}pinterest_iamge.jpg"
     
 
 APP_ID = os.environ.get("APP_ID", None)
@@ -90,8 +88,8 @@ async def vid(event):
                 f"yt-dlp -o '{TMP_DOWNLOAD_DIRECTORY}/pinterest_video.%(ext)s' {url}"
             )
             subprocess.call(komut, shell=True)
-            thumb_image_path = TMP_DOWNLOAD_DIRECTORY + "thumb_image.jpg"
-            j = TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4"
+            thumb_image_path = f"{TMP_DOWNLOAD_DIRECTORY}thumb_image.jpg"
+            j = f"{TMP_DOWNLOAD_DIRECTORY}pinterest_video.mp4"
             metadata = extractMetadata(createParser(j))
             duration = 0
 
@@ -140,7 +138,7 @@ async def vid(event):
             )
             #await event.delete()
             await x.delete()
-            os.remove(TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4")
+            os.remove(f"{TMP_DOWNLOAD_DIRECTORY}pinterest_video.mp4")
             os.remove(thumb_image_path)
         else:
             await event.reply(
@@ -238,7 +236,7 @@ async def run_command(command: List[str]):
 
 async def take_screen_shot(video_file, output_directory, ttl):
     # https://stackoverflow.com/a/13891070/4723940
-    out_put_file_name = output_directory + "/" + str(time.time()) + ".jpg"
+    out_put_file_name = f"{output_directory}/{str(time.time())}.jpg"
     file_genertor_command = [
         "ffmpeg",
         "-ss",
@@ -271,7 +269,7 @@ def humanbytes(size):
     while size > power:
         size /= power
         raised_to_pow += 1
-    return str(round(size, 2)) + " " + dict_power_n[raised_to_pow] + "B"
+    return f"{str(round(size, 2))} {dict_power_n[raised_to_pow]}B"
 
 
 def time_formatter(seconds: int) -> str:
@@ -310,7 +308,7 @@ async def progress(current, total, event, start, type_of_ps):
         tmp = progress_str + "{0} of {1}\nETA: {2}".format(
             humanbytes(current), humanbytes(total), time_formatter(estimated_total_time)
         )
-        await event.edit("{}\n {}".format(type_of_ps, tmp))
+        await event.edit(f"{type_of_ps}\n {tmp}")
 
 """
 @bot.on(events.NewMessage(pattern="/pvid ?(.*)", func=lambda e: e.is_private))
