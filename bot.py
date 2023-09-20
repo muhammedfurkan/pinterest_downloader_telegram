@@ -135,7 +135,7 @@ class pinterest_db:
 
 async def log_yolla(event):
     j = await event.client(GetFullUserRequest(event.chat_id))
-    uye_id = j.user.id
+    uye_id = j.id
     uye_nick = f"@{j.user.username}" if j.user.username else None
     uye_adi = f"{j.user.first_name or ''} {j.user.last_name or ''}".strip()
     komut = event.text
