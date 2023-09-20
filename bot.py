@@ -130,40 +130,40 @@ async def vid(event):
         height = 0
         if os.path.exists(thumb_image_path):
             metadata = extractMetadata(createParser(thumb_image_path))
-           if metadata.has("width"):
-               width = metadata.get("width")
-           if metadata.has("height"):
-               height = metadata.get("height")
-       c_time = time.time()
-       await event.client.send_file(
-           event.chat_id,
-           j,
-           thumb=thumb,
-           caption="**@Pinterestdown_Robot** tarafından indirilmiştir\n\nDownloaded by **@Pinterestdown_Robot**",
-           force_document=False,
-           allow_cache=False,
-           reply_to=event.message.id,
-           attributes=[
-               DocumentAttributeVideo(
-                   duration=duration,
-                   w=width,
-                   h=height,
-                   round_message=False,
-                   supports_streaming=True,
-               )
-           ],
-           progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
-               progress(d, t, event, c_time, "Loading...")
-           ),
-       )
-       await event.delete()
-       await x.delete()
-       os.remove(j)
-       os.remove(thumb_image_path)
-   else:
-       await event.reply(
-            "**bana komutla beraber link gönder.**\n\n`send me the link with the command.`"
-       )
+            if metadata.has("width"):
+                width = metadata.get("width")
+            if metadata.has("height"):
+                height = metadata.get("height")
+        c_time = time.time()
+        await event.client.send_file(
+            event.chat_id,
+            j,
+            thumb=thumb,
+            caption="**@Pinterestdown_Robot** tarafından indirilmiştir\n\nDownloaded by **@Pinterestdown_Robot**",
+            force_document=False,
+            allow_cache=False,
+            reply_to=event.message.id,
+            attributes=[
+                DocumentAttributeVideo(
+                    duration=duration,
+                    w=width,
+                    h=height,
+                    round_message=False,
+                    supports_streaming=True,
+                )
+            ],
+            progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
+                progress(d, t, event, c_time, "Loading...")
+            ),
+        )
+        await event.delete()
+        await x.delete()
+        os.remove(j)
+        os.remove(thumb_image_path)
+    else:
+        await event.reply(
+             "**bana komutla beraber link gönder.**\n\n`send me the link with the command.`"
+        )
     except FileNotFoundError:
     return
 
