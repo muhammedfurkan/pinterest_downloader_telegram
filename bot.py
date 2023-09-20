@@ -65,7 +65,7 @@ TMP_DOWNLOAD_DIRECTORY = os.environ.get("TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/"
 bot = TelegramClient("pinterestbot", APP_ID, APP_HASH).start(bot_token=BOT_TOKEN)
 
 
-@bot.on(events.NewMessage(pattern="/pvid ?(.*)", func=lambda e: e.is_private))
+@bot.on(events.NewMessage(pattern="/pinvd ?(.*)", func=lambda e: e.is_private))
 async def vid(event):
     if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
         os.makedirs(TMP_DOWNLOAD_DIRECTORY)
@@ -144,7 +144,7 @@ async def vid(event):
         return
 
 
-@bot.on(events.NewMessage(pattern="/pimg ?(.*)", func=lambda e: e.is_private))
+@bot.on(events.NewMessage(pattern="/pinim ?(.*)", func=lambda e: e.is_private))
 async def img(event):
     url = event.pattern_match.group(1)
     markup = bot.build_reply_markup(
