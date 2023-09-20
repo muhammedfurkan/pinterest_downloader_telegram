@@ -54,18 +54,6 @@ async def download_image(url):
                 photo_stream.write(image_to_download)
     return TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg"
     
-# Function to download video
-async def download_video(url):
-    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
-        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            video_to_download = await response.read()
-            with open(
-                TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4", "wb"
-            ) as video_stream:
-                video_stream.write(video_to_download)
-    return TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4"
 
 APP_ID = os.environ.get("APP_ID", None)
 APP_HASH = os.environ.get("APP_HASH", None)
@@ -77,94 +65,82 @@ bot = TelegramClient("pinterestbot", APP_ID, APP_HASH).start(bot_token=BOT_TOKEN
 
 @bot.on(events.NewMessage(pattern="/pvid ?(.*)", func=lambda e: e.is_private))
 async def vid(event):
-    url = event.pattern_match.group(1)
-    if url:
-        x = await event.reply("Processing is in progress, please wait...") 
-        pin_dl = importlib.import_module("pin2")
-        pin_dl.run_library_main(
-            url,
-            TMP_DOWNLOAD_DIRECTORY,
-            0,
-            -1,
-            False,
-            False,
-            False,
-            False,
-            False,
-            False,
-            True,
-            False,
-            None,
-            None,
-            None,
+    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
+        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
+    try:
+        markup = bot.build_reply_markup(
+            [
+                [
+                    Button.url(text="Kanal Linki", url="t.me/Kanalleri"),
+                ]
+            ]
         )
-        j = None
-        for file in os.listdir(TMP_DOWNLOAD_DIRECTORY):
-            if file.endswith(".log"):
-                os.remove(f"{TMP_DOWNLOAD_DIRECTORY}/{file}")
-                continue
-            if file.endswith(".mp4"):
-                j = TMP_DOWNLOAD_DIRECTORY + file
-             #j = download_video(get_url)thumb_image_path = TMP_DOWNLOAD_DIRECTORY + "thumb_image.jpg"
-        thumb_image_path = TMP_DOWNLOAD_DIRECTORY + "thumb_image.jpg"
-           
-        if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
-            os.makedirs(TMP_DOWNLOAD_DIRECTORY)
 
-        metadata = extractMetadata(createParser(j))
-        duration = 0
+        url = event.pattern_match.group(1)
+        if url:
+            x = await event.reply("Processing is in progress, please wait")
+            komut = (
+                f"yt-dlp -o '{TMP_DOWNLOAD_DIRECTORY}/pinterest_video.%(ext)s' {url}"
+            )
+            subprocess.call(komut, shell=True)
+            thumb_image_path = TMP_DOWNLOAD_DIRECTORY + "thumb_image.jpg"
+            j = TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4"
+            metadata = extractMetadata(createParser(j))
+            duration = 0
 
-        if metadata.has("duration"):
-            duration = metadata.get("duration").seconds
+            if metadata.has("duration"):
+                duration = metadata.get("duration").seconds
+                width = 0
+                height = 0
+                thumb = None
+
+            if os.path.exists(thumb_image_path):
+                thumb = thumb_image_path
+            else:
+                thumb = await take_screen_shot(
+                    j, os.path.dirname(os.path.abspath(j)), (duration / 2)
+                )
             width = 0
             height = 0
-            thumb = None
-
-        if os.path.exists(thumb_image_path):
-            thumb = thumb_image_path
-        else:
-            thumb = await take_screen_shot(
-                j, os.path.dirname(os.path.abspath(j)), (duration / 2)
+            if os.path.exists(thumb_image_path):
+                metadata = extractMetadata(createParser(thumb_image_path))
+                if metadata.has("width"):
+                    width = metadata.get("width")
+                if metadata.has("height"):
+                    height = metadata.get("height")
+            c_time = time.time()
+            await event.client.send_file(
+                event.chat_id,
+                j,
+                thumb=thumb,
+                caption="Downloaded by **@Pinterestdown_Robot**",
+                force_document=False,
+                allow_cache=False,
+                reply_to=event.message.id,
+                buttons=markup,
+                attributes=[
+                    DocumentAttributeVideo(
+                        duration=duration,
+                        w=width,
+                        h=height,
+                        round_message=False,
+                        supports_streaming=True,
+                    )
+                ],
+                progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
+                    progress(d, t, event, c_time, "Loading...")
+                ),
             )
-        width = 0
-        height = 0
-        if os.path.exists(thumb_image_path):
-            metadata = extractMetadata(createParser(thumb_image_path))
-            if metadata.has("width"):
-                width = metadata.get("width")
-            if metadata.has("height"):
-                height = metadata.get("height")
-        c_time = time.time()
-        await event.client.send_file(
-            event.chat_id,
-            j,
-            thumb=thumb,
-            caption="**@Pinterestdown_Robot** tarafından indirilmiştir\n\nDownloaded by **@Pinterestdown_Robot**",
-            force_document=False,
-            allow_cache=False,
-            reply_to=event.message.id,
-            attributes=[
-                DocumentAttributeVideo(
-                    duration=duration,
-                    w=width,
-                    h=height,
-                    round_message=False,
-                    supports_streaming=True,
-                )
-            ],
-            progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
-                progress(d, t, event, c_time, "Loading...")
-            ),
-        )
-        await event.delete()
-        await x.delete()
-        os.remove(j)
-        os.remove(thumb_image_path)
-    else:
-        await event.reply(
-             "**bana komutla beraber link gönder.**\n\n`send me the link with the command.`"
-        )
-
+            await event.delete()
+            await x.delete()
+            os.remove(TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4")
+            os.remove(thumb_image_path)
+        else:
+            await event.reply(
+                "send me the link with the command."
+            )
+    except FileNotFoundError:
+        return
 
 
 @bot.on(events.NewMessage(pattern="/pimg ?(.*)", func=lambda e: e.is_private))
@@ -202,7 +178,7 @@ async def img(event):
             if file.endswith(".jpg"):
                 j = TMP_DOWNLOAD_DIRECTORY + file
 
-        if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
+        if notos.path.isdir(TMP_DOWNLOAD_DIRECTORY):
             os.makedirs(TMP_DOWNLOAD_DIRECTORY)
         c_time = time.time()
         await event.client.send_file(
@@ -317,6 +293,98 @@ async def progress(current, total, event, start, type_of_ps):
             humanbytes(current), humanbytes(total), time_formatter(estimated_total_time)
         )
         await event.edit("{}\n {}".format(type_of_ps, tmp))
+
+"""
+@bot.on(events.NewMessage(pattern="/pvid ?(.*)", func=lambda e: e.is_private))
+async def vid(event):
+    url = event.pattern_match.group(1)
+    if url:
+        x = await event.reply("Processing is in progress, please wait...") 
+        pin_dl = importlib.import_module("pin2")
+        pin_dl.run_library_main(
+            url,
+            TMP_DOWNLOAD_DIRECTORY,
+            0,
+            -1,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            True,
+            False,
+            None,
+            None,
+            None,
+        )
+        j = None
+        for file in os.listdir(TMP_DOWNLOAD_DIRECTORY):
+            if file.endswith(".log"):
+                os.remove(f"{TMP_DOWNLOAD_DIRECTORY}/{file}")
+                continue
+            if file.endswith(".mp4"):
+                j = TMP_DOWNLOAD_DIRECTORY + file
+             #j = download_video(get_url)thumb_image_path = TMP_DOWNLOAD_DIRECTORY + "thumb_image.jpg"
+        thumb_image_path = TMP_DOWNLOAD_DIRECTORY + "thumb_image.jpg"
+           
+        if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
+            os.makedirs(TMP_DOWNLOAD_DIRECTORY)
+
+        metadata = extractMetadata(createParser(j))
+        duration = 0
+
+        if metadata.has("duration"):
+            duration = metadata.get("duration").seconds
+            width = 0
+            height = 0
+            thumb = None
+
+        if os.path.exists(thumb_image_path):
+            thumb = thumb_image_path
+        else:
+            thumb = await take_screen_shot(
+                j, os.path.dirname(os.path.abspath(j)), (duration / 2)
+            )
+        width = 0
+        height = 0
+        if os.path.exists(thumb_image_path):
+            metadata = extractMetadata(createParser(thumb_image_path))
+            if metadata.has("width"):
+                width = metadata.get("width")
+            if metadata.has("height"):
+                height = metadata.get("height")
+        c_time = time.time()
+        await event.client.send_file(
+            event.chat_id,
+            j,
+            thumb=thumb,
+            caption="**@Pinterestdown_Robot** tarafından indirilmiştir\n\nDownloaded by **@Pinterestdown_Robot**",
+            force_document=False,
+            allow_cache=False,
+            reply_to=event.message.id,
+            attributes=[
+                DocumentAttributeVideo(
+                    duration=duration,
+                    w=width,
+                    h=height,
+                    round_message=False,
+                    supports_streaming=True,
+                )
+            ],
+            progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
+                progress(d, t, event, c_time, "Loading...")
+            ),
+        )
+        await event.delete()
+        await x.delete()
+        os.remove(j)
+        os.remove(thumb_image_path)
+    else:
+        await event.reply(
+             "**bana komutla beraber link gönder.**\n\n`send me the link with the command.`"
+        )
+"""
 
 
 bot.start()
