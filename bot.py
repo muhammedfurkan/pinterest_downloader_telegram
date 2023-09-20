@@ -73,30 +73,6 @@ TMP_DOWNLOAD_DIRECTORY = os.environ.get("TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/"
 
 bot = TelegramClient("pinterestbot", APP_ID, APP_HASH).start(bot_token=BOT_TOKEN)
 
-msg = """
-Merhaba ben Pinterest üzerinden Video ve Resim indirebilen bir botum.
-`Hello, I am a bot that can download Videos and Images via Pinterest.`
-
-Şunları yapabilirim:
-`I can:`
-
-👉 **Video indirmek için:** `/pvid pinterestURL`
-👉 **To download a video:** `/pvid pinterestURL`
-
-
-👉 **Resim indirebilmek için:** `/pimg pinterestURL`
-👉 **To download a image:** `/pimg pinterestURL`
-"""
-
-
-SESSION_ADI = "pinterest"
-
-
-
-#==========================================================================================
-@bot.on(events.NewMessage(pattern="/start", func=lambda e: e.is_private))
-async def start(event):
-    await bot.send_message(event.chat_id, msg, link_preview=False)
 
 
 @bot.on(events.NewMessage(pattern="/pvid ?(.*)", func=lambda e: e.is_private))
