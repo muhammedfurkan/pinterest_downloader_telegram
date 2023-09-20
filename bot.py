@@ -65,7 +65,7 @@ TMP_DOWNLOAD_DIRECTORY = os.environ.get("TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/"
 bot = TelegramClient("pinterestbot", APP_ID, APP_HASH).start(bot_token=BOT_TOKEN)
 
 
-@bot.on(events.NewMessage(pattern="/pinvd ?(.*)", func=lambda e: e.is_private))
+@bot.on(events.NewMessage(pattern="/pvdl ?(.*)", func=lambda e: e.is_private))
 async def vid(event):
     if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
         os.makedirs(TMP_DOWNLOAD_DIRECTORY)
@@ -138,13 +138,13 @@ async def vid(event):
             os.remove(thumb_image_path)
         else:
             await event.reply(
-                "send me the link with the command."
+                "Use command /pvdl [link] to download Pinterest Videos."
             )
     except FileNotFoundError:
         return
 
 
-@bot.on(events.NewMessage(pattern="/pinim ?(.*)", func=lambda e: e.is_private))
+@bot.on(events.NewMessage(pattern="/pidl ?(.*)", func=lambda e: e.is_private))
 async def img(event):
     url = event.pattern_match.group(1)
     markup = bot.build_reply_markup(
@@ -206,7 +206,7 @@ async def img(event):
         os.remove(j)
     else:
         await event.reply(
-            "**bana komutla beraber link gönder.**\n\n`send me the link with the command.`"
+            "Use command /pidl [link] to download Pinterest Images."
         )
 
 
