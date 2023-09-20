@@ -41,10 +41,6 @@ async def get_download_url(link):
                 "a"
             ).attr("href")
 
-
-
-
-
 # Function to download image
 async def download_image(url):
     if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
@@ -58,16 +54,22 @@ async def download_image(url):
                 photo_stream.write(image_to_download)
     return TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg"
 
+async def download_video(url):
+    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
+        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            video_to_download = await response.read()
+            with open(
+                TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4", "wb"
+            ) as video_stream:
+                video_stream.write(video_to_download)
+    return TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4"
 
 APP_ID = os.environ.get("APP_ID", None)
 APP_HASH = os.environ.get("APP_HASH", None)
 BOT_TOKEN = os.environ.get("BOT_TOKEN", None)
 TMP_DOWNLOAD_DIRECTORY = os.environ.get("TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/")
-MONGO_DB = os.environ.get("MONGO_DB", None)
-# type yout telegram id or username
-LOG = os.environ.get("LOG", None)
-ADMIN = os.environ.get("ADMIN", None)
-
 
 bot = TelegramClient("pinterestbot", APP_ID, APP_HASH).start(bot_token=BOT_TOKEN)
 
@@ -90,149 +92,11 @@ Merhaba ben Pinterest üzerinden Video ve Resim indirebilen bir botum.
 SESSION_ADI = "pinterest"
 
 
-class pinterest_db:
-    def __init__(self):
-        client = pymongo.MongoClient(MONGO_DB)
-        db = client["Telegram"]
-        self.collection = db[SESSION_ADI]
 
-    def ara(self, sorgu: dict):
-        say = self.collection.count_documents(sorgu)
-        if say == 1:
-            return self.collection.find_one(sorgu, {"_id": 0})
-        elif say > 1:
-            cursor = self.collection.find(sorgu, {"_id": 0})
-            return {
-                bak["uye_id"]: {"uye_nick": bak["uye_nick"], "uye_adi": bak["uye_adi"]}
-                for bak in cursor
-            }
-        else:
-            return None
-
-    def ekle(self, uye_id, uye_nick, uye_adi):
-        if not self.ara({"uye_id": {"$in": [str(uye_id), int(uye_id)]}}):
-            return self.collection.insert_one(
-                {
-                    "uye_id": uye_id,
-                    "uye_nick": uye_nick,
-                    "uye_adi": uye_adi,
-                }
-            )
-        else:
-            return None
-
-    def sil(self, uye_id):
-        if not self.ara({"uye_id": {"$in": [str(uye_id), int(uye_id)]}}):
-            return None
-
-        self.collection.delete_one({"uye_id": {"$in": [str(uye_id), int(uye_id)]}})
-        return True
-
-    @property
-    def kullanici_idleri(self):
-        return list(self.ara({"uye_id": {"$exists": True}}).keys())
-
-
-async def log_yolla(event):
-    j = await event.client(GetFullUserRequest(event.chat_id))
-    uye_id = j.id
-    uye_nick = f"@{j.user.username}" if j.user.username else None
-    uye_adi = f"{j.user.first_name or ''} {j.user.last_name or ''}".strip()
-    komut = event.text
-
-    # Kullanıcı Kaydet
-    db = pinterest_db()
-    db.ekle(uye_id, uye_nick, uye_adi)
-
-
-# total number of users using the bot
-@bot.on(events.NewMessage(pattern="/kul_say"))
-async def say(event):
-    j = await event.client.get_entity(event.chat_id)
-
-    db = pinterest_db()
-    db.ekle(j.user.id, j.user.username, j.user.first_name)
-
-    def KULLANICILAR():
-        return db.kullanici_idleri
-
-    await event.client.send_message(
-        ADMIN, f"ℹ️ `{len(KULLANICILAR())}` __Adet Kullanıcıya Sahipsin..__"
-    )
-
-
-# Command to make an announcement to users using the bot
-@bot.on(events.NewMessage(pattern="/duyuru ?(.*)"))
-async def duyuru(event):
-    # < Başlangıç
-    await log_yolla(event)
-
-    ilk_mesaj = await event.client.send_message(
-        event.chat_id, "⌛️ `Hallediyorum..`", reply_to=event.chat_id, link_preview=False
-    )
-    # ------------------------------------------------------------- Başlangıç >
-
-    db = pinterest_db()
-
-    def KULLANICILAR():
-        return db.kullanici_idleri
-
-    if not KULLANICILAR():
-        await ilk_mesaj.edit("ℹ️ __Start vermiş kimse yok kanka..__")
-        return
-
-    if not event.message.reply_to:
-        await ilk_mesaj.edit("⚠️ __Duyurmak için mesaj yanıtlayın..__")
-        return
-
-    basarili = 0
-    hatalar = []
-    mesaj_giden_kisiler = []
-    get_reply_msg = await event.get_reply_message()
-    for kullanici_id in KULLANICILAR():
-        try:
-            await event.client.send_message(
-                entity=kullanici_id, message=get_reply_msg.message
-            )
-            mesaj_giden_kisiler.append(kullanici_id)
-            basarili += 1
-        except Exception as hata:
-            hatalar.append(type(hata).__name__)
-            db.sil(kullanici_id)
-
-    mesaj = (
-        f"⁉️ `{len(hatalar)}` __Adet Kişiye Mesaj Atamadım ve DB'den Sildim..__\n\n"
-        if hatalar
-        else ""
-    )
-    mesaj += f"📜 `{basarili}` __Adet Kullanıcıya Mesaj Attım..__"
-
-    await ilk_mesaj.edit(mesaj)
-
-
+#==========================================================================================
 @bot.on(events.NewMessage(pattern="/start", func=lambda e: e.is_private))
 async def start(event):
-    await log_yolla(event)
-    j = await event.client.get_entity(event.chat_id)
-    mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-    await bot.send_message(ADMIN, mesaj)
-    if event:
-        markup = bot.build_reply_markup(
-            [
-                [
-                    Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
-                    Button.url(text="👤 Yapımcı", url="t.me/ADMIN"),
-                ],
-                [
-                    Button.url(
-                        text="🔗 GitHub Repo",
-                        url="https://github.com/muhammedfurkan/pinterest_downloader_telegram",
-                    )
-                ],
-                [Button.inline(text="🤖 Diğer Botlar", data="digerbotlar")],
-            ]
-        )
-        await bot.send_message(event.chat_id, msg, buttons=markup, link_preview=False)
+    await bot.send_message(event.chat_id, msg, link_preview=False)
 
 
 @bot.on(events.NewMessage(pattern="/pvid ?(.*)", func=lambda e: e.is_private))
@@ -241,22 +105,9 @@ async def vid(event):
     if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
         os.makedirs(TMP_DOWNLOAD_DIRECTORY)
     try:
-        j = await event.client.get_entity(event.chat_id)
-        mesaj = f"Gönderen [{j.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-        await bot.send_message("By_Azade", mesaj)
-        markup = bot.build_reply_markup(
-            [
-                [
-                    Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
-                    Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
-                ],
-                [Button.inline(text="🤖 Diğer Botlar", data="digerbotlar")],
-            ]
-        )
-
         url = event.pattern_match.group(1)
         if url:
-            x = await event.reply("`işlem yapılıyor bekleyiniz...`")
+            x = await event.reply("`Processing is in progress, please wait..`")
             komut = (
                 f"yt-dlp -o '{TMP_DOWNLOAD_DIRECTORY}/pinterest_video.%(ext)s' {url}"
             )
@@ -291,11 +142,10 @@ async def vid(event):
                 event.chat_id,
                 j,
                 thumb=thumb,
-                caption="**@Pinterestdown_Robot** tarafından indirilmiştir\n\nDownloaded by **@Pinterestdown_Robot**",
+                caption="**@musicx_dlbot**",
                 force_document=False,
                 allow_cache=False,
                 reply_to=event.message.id,
-                buttons=markup,
                 attributes=[
                     DocumentAttributeVideo(
                         duration=duration,
@@ -306,7 +156,7 @@ async def vid(event):
                     )
                 ],
                 progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
-                    progress(d, t, event, c_time, "yükleniyor...")
+                    progress(d, t, event, c_time, "Loading...")
                 ),
             )
             await event.delete()
@@ -320,27 +170,13 @@ async def vid(event):
     except FileNotFoundError:
         return
 
-
-
 @bot.on(events.NewMessage(pattern="/pimg ?(.*)", func=lambda e: e.is_private))
 async def img(event):
     await log_yolla(event)
-    j = await event.client.get_entity(event.chat_id)
-    mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-    await bot.send_message(ADMIN, mesaj)
-    markup = bot.build_reply_markup(
-        [
-            [
-                Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
-                Button.url(text="👤 Yapımcı", url="t.me/ADMIN"),
-            ],
-            [Button.inline(text="🤖 Diğer Botlar", data="digerbotlar")],
-        ]
-    )
     url = event.pattern_match.group(1)
     if url:
         x = await event.reply(
-            "`İşlem yapılıyor lütfen bekleyiniz...`\n\nProcessing please wait ..."
+            "Processing please wait ..."
         )
         # get_url = await get_download_url(url)
         # j = await download_image(get_url)
@@ -376,13 +212,12 @@ async def img(event):
         await event.client.send_file(
             event.chat_id,
             j,
-            caption="**@Pinterestdown_Robot** tarafından indirilmiştir\n\nDownloaded by **@Pinterestdown_Robot**",
+            caption="**@MusicX_dlbot**",
             force_document=False,
             allow_cache=False,
             reply_to=event.message.id,
-            buttons=markup,
             progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
-                progress(d, t, event, c_time, "yükleniyor...")
+                progress(d, t, event, c_time, "Loading....")
             ),
         )
         await event.delete()
@@ -392,58 +227,6 @@ async def img(event):
         await event.reply(
             "**bana komutla beraber link gönder.**\n\n`send me the link with the command.`"
         )
-
-
-@bot.on(events.CallbackQuery(pattern=b"digerbotlar"))
-async def digerbotlar(event):
-    markup = bot.build_reply_markup(
-        [
-            [
-                Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
-                Button.url(text="👤 Yapımcı", url="t.me/ADMIN"),
-            ],
-            [Button.inline(text="Ana Sayfa", data="ana")],
-        ]
-    )
-    await event.edit(
-        "**Diğer Botlarımız:**\n\n"
-        + "📍 [A101 Katalog Bot](t.me/A101KatalogBot)\n"
-        + "📍 [Osmanlıca Bot](t.me/OsmanlicaBot)\n"
-        + "📍 [Pinterest Video Resim İndirici Bot](t.me/A101KatalogBot)\n"
-        + "📍 [Arşiv Çıkarıcı Bot](t.me/ExtractorRobot)\n"
-        + "📍 [Vimeo Video İndirici Bot](t.me/vimeo_robot)\n"
-        + "📍 [Tureng Bot](t.me/TurengRobot)\n"
-        + "📍 [TDK Bot](t.me/TDK_ROBOT)\n"
-        + "📍 [Müzik Arama Bot](t.me/muzikaramabot)\n"
-        + "📍 [ÖSYM Bot](t.me/OSYMRobot)\n"
-        + "📍 [Youtube Playlist İndirici Bot](t.me/PlaylistIndirRobot)\n"
-        + "📍 [Drive Upload Bot](t.me/driveyuklebot)\n"
-        + "📍 [GoFile Upload Bot](t.me/GofileRobot)\n"
-        + "📍 [Bim Aktuel Ürünler Bot](t.me/BimAktuelBot)\n",
-        buttons=markup,
-        link_preview=False,
-    )
-
-
-@bot.on(events.CallbackQuery(pattern=b"ana"))
-async def ana(event):
-    markup = bot.build_reply_markup(
-        [
-            [
-                Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
-                Button.url(text="👤 Yapımcı", url="t.me/ADMIN"),
-            ],
-            [
-                Button.url(
-                    text="🔗 GitHub Repo",
-                    url="https://github.com/muhammedfurkan/pinterest_downloader_telegram",
-                )
-            ],
-            [Button.inline(text="🤖 Diğer Botlar", data="digerbotlar")],
-        ]
-    )
-    await event.edit(msg, buttons=markup, link_preview=False)
-
 
 async def run_command(command: List[str]):
     process = await asyncio.create_subprocess_exec(
