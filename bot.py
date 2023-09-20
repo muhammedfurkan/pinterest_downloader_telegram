@@ -79,8 +79,8 @@ bot = TelegramClient("pinterestbot", APP_ID, APP_HASH).start(bot_token=BOT_TOKEN
 async def vid(event):
     url = event.pattern_match.group(1)
     if url:
-        x = await event.reply("`işlem yapılıyor bekleyiniz...`") 
-        pin_dl = importlib.import_module("pin")
+        x = await event.reply("Processing is in progress, please wait...") 
+        pin_dl = importlib.import_module("pin2")
         pin_dl.run_library_main(
             url,
             TMP_DOWNLOAD_DIRECTORY,
@@ -176,7 +176,7 @@ async def img(event):
         )
         # get_url = await get_download_url(url)
         # j = await download_image(get_url)
-        pin_dl = importlib.import_module("pin")
+        pin_dl = importlib.import_module("pin1")
         pin_dl.run_library_main(
             url,
             TMP_DOWNLOAD_DIRECTORY,
