@@ -73,7 +73,7 @@ async def vid(event):
         markup = bot.build_reply_markup(
             [
                 [
-                    Button.url(text="Kanal Linki", url="t.me/Kanalleri"),
+                    Button.url(text="Kanal Linki", url="t.me/KanalLinkleri"),
                 ]
             ]
         )
