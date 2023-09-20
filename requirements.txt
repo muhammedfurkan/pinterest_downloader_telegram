@@ -15,5 +15,5 @@ termcolor
 pysocks
 fake-useragent
 
-
+git+https://github.com/yt-dlp/yt-dlp.git
 
