@@ -6,57 +6,19 @@ import os
 import re
 import time
 from typing import List
-from urllib import request
-import subprocess
-import aiohttp
+
 import pymongo
-import requests
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
-from pymongo import MongoClient
-from pyquery import PyQuery as pq
 from telethon import TelegramClient, events
 from telethon.sync import TelegramClient
 from telethon.tl.custom import Button
-from telethon.tl.functions.users import GetFullUserRequest
 from telethon.tl.types import DocumentAttributeVideo
 
 logging.basicConfig(
     format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s", level=logging.WARNING
 )
 logger = logging.getLogger(__name__)
-
-
-# Function to get download url
-async def get_download_url(link):
-    # Make request to website
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            "https://www.expertsphp.com/download.php", data={"url": link}
-        ) as response:
-            # Get content from post request
-            request_content = await response.read()
-            str_request_content = str(request_content, "utf-8")
-            return pq(str_request_content)("table.table-condensed")("tbody")("td")(
-                "a"
-            ).attr("href")
-
-
-
-
-
-# Function to download image
-async def download_image(url):
-    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
-        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            image_to_download = await response.read()
-            with open(
-                TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg", "wb"
-            ) as photo_stream:
-                photo_stream.write(image_to_download)
-    return TMP_DOWNLOAD_DIRECTORY + "pinterest_iamge.jpg"
 
 
 APP_ID = os.environ.get("APP_ID", None)
@@ -66,7 +28,7 @@ TMP_DOWNLOAD_DIRECTORY = os.environ.get("TMP_DOWNLOAD_DIRECTORY", "./DOWNLOADS/"
 MONGO_DB = os.environ.get("MONGO_DB", None)
 # type yout telegram id or username
 LOG = os.environ.get("LOG", None)
-ADMIN = os.environ.get(ADMIN, None)
+ADMIN = os.environ.get("ADMIN", None)
 
 
 bot = TelegramClient("pinterestbot", APP_ID, APP_HASH).start(bot_token=BOT_TOKEN)
@@ -134,10 +96,11 @@ class pinterest_db:
 
 
 async def log_yolla(event):
-    j = await event.client(GetFullUserRequest(event.chat_id))
-    uye_id = j.user.id
-    uye_nick = f"@{j.user.username}" if j.user.username else None
-    uye_adi = f"{j.user.first_name or ''} {j.user.last_name or ''}".strip()
+    j = await event.client.get_input_entity(event.chat_id)
+    print(j, "j--------------------------------")
+    uye_id = j.id
+    uye_nick = f"@{j.username}" if j.username else None
+    uye_adi = f"{j.first_name or ''} {j.last_name or ''}".strip()
     komut = event.text
 
     # Kullanıcı Kaydet
@@ -165,7 +128,6 @@ async def say(event):
 @bot.on(events.NewMessage(pattern="/duyuru ?(.*)"))
 async def duyuru(event):
     # < Başlangıç
-    await log_yolla(event)
 
     ilk_mesaj = await event.client.send_message(
         event.chat_id, "⌛️ `Hallediyorum..`", reply_to=event.chat_id, link_preview=False
@@ -212,9 +174,8 @@ async def duyuru(event):
 
 @bot.on(events.NewMessage(pattern="/start", func=lambda e: e.is_private))
 async def start(event):
-    await log_yolla(event)
     j = await event.client.get_entity(event.chat_id)
-    mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
+    mesaj = f"Gönderen [{j.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
     await bot.send_message(ADMIN, mesaj)
     if event:
         markup = bot.build_reply_markup(
@@ -237,18 +198,15 @@ async def start(event):
 
 @bot.on(events.NewMessage(pattern="/pvid ?(.*)", func=lambda e: e.is_private))
 async def vid(event):
-    await log_yolla(event)
-    if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
-        os.makedirs(TMP_DOWNLOAD_DIRECTORY)
     try:
         j = await event.client.get_entity(event.chat_id)
         mesaj = f"Gönderen [{j.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
-        await bot.send_message("By_Azade", mesaj)
+        await bot.send_message(ADMIN, mesaj)
         markup = bot.build_reply_markup(
             [
                 [
                     Button.url(text="📍 Kanal Linki", url="t.me/KanalLinkleri"),
-                    Button.url(text="👤 Yapımcı", url="t.me/By_Azade"),
+                    Button.url(text="👤 Yapımcı", url="t.me/ADMIN"),
                 ],
                 [Button.inline(text="🤖 Diğer Botlar", data="digerbotlar")],
             ]
@@ -257,12 +215,40 @@ async def vid(event):
         url = event.pattern_match.group(1)
         if url:
             x = await event.reply("`işlem yapılıyor bekleyiniz...`")
-            komut = (
-                f"yt-dlp -o '{TMP_DOWNLOAD_DIRECTORY}/pinterest_video.%(ext)s' {url}"
+
+            # get_url = get_download_url(url)
+            pin_dl = importlib.import_module("pin")
+            pin_dl.run_library_main(
+                url,
+                TMP_DOWNLOAD_DIRECTORY,
+                0,
+                -1,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                True,
+                False,
+                None,
+                None,
+                None,
             )
-            subprocess.call(komut, shell=True)
+            j = None
+            for file in os.listdir(TMP_DOWNLOAD_DIRECTORY):
+                if file.endswith(".log"):
+                    os.remove(f"{TMP_DOWNLOAD_DIRECTORY}/{file}")
+                    continue
+                if file.endswith(".mp4"):
+                    j = TMP_DOWNLOAD_DIRECTORY + file
+
+            # j = download_video(get_url)
             thumb_image_path = TMP_DOWNLOAD_DIRECTORY + "thumb_image.jpg"
-            j = TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4"
+
+            if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
+                os.makedirs(TMP_DOWNLOAD_DIRECTORY)
+
             metadata = extractMetadata(createParser(j))
             duration = 0
 
@@ -311,7 +297,7 @@ async def vid(event):
             )
             await event.delete()
             await x.delete()
-            os.remove(TMP_DOWNLOAD_DIRECTORY + "pinterest_video.mp4")
+            os.remove(j)
             os.remove(thumb_image_path)
         else:
             await event.reply(
@@ -321,12 +307,10 @@ async def vid(event):
         return
 
 
-
 @bot.on(events.NewMessage(pattern="/pimg ?(.*)", func=lambda e: e.is_private))
 async def img(event):
-    await log_yolla(event)
     j = await event.client.get_entity(event.chat_id)
-    mesaj = f"Gönderen [{j.user.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
+    mesaj = f"Gönderen [{j.first_name}](tg://user?id={event.chat_id})\nMesaj: {event.message.message}"
     await bot.send_message(ADMIN, mesaj)
     markup = bot.build_reply_markup(
         [

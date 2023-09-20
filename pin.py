@@ -79,9 +79,7 @@ try:
     pinterest_logo = "🅿️"
     # Test Windows unicode capability by printing logo, throws if not:
     print(pinterest_logo, end=ANSI_CLEAR, flush=True)
-except (
-    Exception
-):  # UnicodeEncodeError: # Will error later if not do this, so better quit() early
+except Exception:  # UnicodeEncodeError: # Will error later if not do this, so better quit() early
     cprint(
         "".join(
             [
@@ -121,7 +119,6 @@ UA = ua.chrome
 # [DEPRECATED] no more 259 since always -el now AND Windows 259 - \\?\ == 255 normal Linux
 WIN_MAX_PATH = 255  # MAX_PATH 260 need exclude 1 terminating null character <NUL>
 
-
 # https://stackoverflow.com/a/34325723/1074998
 def printProgressBar(
     iteration, total, prefix="", suffix="", decimals=1, length=100, fill="#"
@@ -159,9 +156,9 @@ def printProgressBar(
 
 # imgs:
 # source_url=%2Fmistafisha%2Fanimals%2F&data=%7B%22options%22%3A%7B%22isPrefetch%22%3Afalse%2C%22board_id%22%3A
-# %2253761857990790784%22%2C%22board_url%22%3A%22%2Fmistafisha%2Fanimals%2F%22%2C%22field_set_key%22%3A%22react_grid_pin
-# %22%2C%22filter_section_pins%22%3Atrue%2C%22sort%22%3A%22default%22%2C%22layout%22%3A%22default%22%2C%22page_size
-# %22%3A25%2C%22redux_normalize_feed%22%3Atrue%7D%2C%22context%22%3A%7B%7D%7D&_=1592340515565
+#%2253761857990790784%22%2C%22board_url%22%3A%22%2Fmistafisha%2Fanimals%2F%22%2C%22field_set_key%22%3A%22react_grid_pin
+#%22%2C%22filter_section_pins%22%3Atrue%2C%22sort%22%3A%22default%22%2C%22layout%22%3A%22default%22%2C%22page_size
+#%22%3A25%2C%22redux_normalize_feed%22%3Atrue%7D%2C%22context%22%3A%7B%7D%7D&_=1592340515565
 # unquote:
 #'source_url=/mistafisha/animals/&data={"options":{"isPrefetch":false,"board_id":"53761857990790784"
 # ,"board_url":"/mistafisha/animals/","field_set_key":"react_grid_pin","filter_section_pins":true,"sort":"default"
@@ -250,10 +247,10 @@ def get_session(ver_i, proxies, cookie_file):
     return s
 
 
-# def dj(j, tag=None):
-#     if tag:
-#         print("### [" + tag + "] ###")
-#     print(json.dumps(j, sort_keys=True, indent=4))
+def dj(j, tag=None):
+    if tag:
+        print("### [" + tag + "] ###")
+    print(json.dumps(j, sort_keys=True, indent=4))
 
 
 def get_pin_info(
@@ -274,11 +271,15 @@ def get_pin_info(
     cookie_file,
     get_data_only,
 ):
+
     scripts = []
     is_success = False
     image = None
-    for t in (15, 30, 40, 50, 60):
+    for t in (15, 30, 40, 50, 60, 120, 250, 500):
         # print('https://www.pinterest.com/pin/{}/'.format(pin_id))
+        # comment the next block to add video data
+        if is_success:
+            break
 
         try:
             with open(cookie_file) as f:
@@ -317,8 +318,39 @@ def get_pin_info(
 
         indexErr = False
         for script in scripts:
+            # if 'imageSpec_orig' in script:
+            #     print("script:", script)
             try:
                 data = json.loads(script)
+                try:
+                    _image_url = data["response"]["data"]["v3GetPinQuery"]["data"][
+                        "imageSpec_orig"
+                    ]["url"]
+                    print("found v3GetPinQuery:", _image_url)
+                    _id = "an_id"
+                    _split = _image_url.split("/")
+                    if len(_split) > 0:
+                        _split = _split[-1].split(".")
+                        if len(_split) > 0:
+                            _id = _split[0]
+                    if image is None:
+                        image = {}
+                    image["id"] = _id
+                    image["images"] = {"orig": {"url": _image_url}}
+                    is_success = True
+                    # try:
+                    #     _video_urls = data['response']['data']['v3GetPinQuery']['data']['videos']['videoUrls']
+                    #     print("found v3GetPinQuery video_list:", _video_urls)
+                    #     image["videos"] = {
+                    #         "video_list": _video_urls
+                    #     }
+                    #     break
+                    # except (TypeError, KeyError):
+                    #     pass
+                    break
+                except (TypeError, KeyError):
+                    if "v3GetPinQuery" in script:
+                        print("error in exracting info from v3GetPinQuery:", script)
                 if "props" in data:
                     pins = data["props"]["initialReduxState"]["pins"]
                     try:
@@ -559,6 +591,7 @@ def get_board_info(
 
 
 def fetch_boards(uname, proxies, cookie_file):
+
     try:
         with open(cookie_file) as f:
             rawdata = f.read()
@@ -581,6 +614,7 @@ def fetch_boards(uname, proxies, cookie_file):
     #    continue
 
     while bookmark != "-end-":
+
         options = {
             "isPrefetch": "false",
             "privacy_filter": "all",
@@ -795,6 +829,7 @@ def get_max_path(arg_cut, fs_f_max, fpart_excluded_immutable, immutable):
 
 
 def get_output_file_path(url, arg_cut, fs_f_max, image_id, human_fname, save_dir):
+
     pin_id_str = sanitize(str(image_id))
     basename = os.path.basename(
         url
@@ -962,6 +997,7 @@ def download_img(
     arg_el,
     fs_f_max,
 ):
+
     try:
         # Using threading.Lock() if necessary
         if "id" not in image:
@@ -1218,6 +1254,7 @@ def download_img(
                                     time.sleep(5)
                                     IMG_SESSION = get_session(3, proxies, cookies)
                             if is_ok and r.ok:
+
                                 try:
                                     with open(file_path, "wb") as f:
                                         for chunk in r:
@@ -1440,6 +1477,7 @@ def download_img(
                     file_path = "\\\\?\\" + os.path.abspath(file_path)
 
                 if not os.path.exists(file_path) or arg_force_update:
+
                     is_ok = False
                     for t in (15, 30, 40, 50, 60):
                         try:
@@ -1610,6 +1648,7 @@ def download_img(
 
 
 def create_dir(save_dir):
+
     try:
         if IS_WIN:
             os.makedirs("\\\\?\\" + os.path.abspath(save_dir))
@@ -1618,6 +1657,7 @@ def create_dir(save_dir):
     except FileExistsError:  # Check this first to avoid OSError cover this
         pass  # Normal if re-download
     except OSError:  # e.g. File name too long
+
         # Only need to care for individual path component
         # , i.e. os.statvfs('./').f_namemax = 255(normal fs), 242(docker) or 143(eCryptfs) )
         # , not full path( os.statvfs('./').f_frsize - 1 = 2045)
@@ -1657,6 +1697,7 @@ def write_log(
     arg_cut,
     break_from_latest_pin,
 ):
+
     got_img = False
 
     if arg_timestamp_log:
@@ -1743,6 +1784,7 @@ def write_log(
                         "Pinterest Downloader: Version " + str(__version__) + "\n\n"
                     )
         else:
+
             if pin:
                 img_total = 1
             elif break_from_latest_pin:  # Already cut last non-image, so no need -1
@@ -1962,6 +2004,7 @@ def fetch_imgs(
     arg_el,
     fs_f_max,
 ):
+
     bookmark = None
     images = []
 
@@ -2068,7 +2111,9 @@ Please ensure your username/boardname/[section] or link has media item.\n"
     break_from_latest_pin = False
     sorted_api = True
     while bookmark != "-end-":
+
         if section_slug:
+
             options = {
                 "isPrefetch": "false",
                 "field_set_key": "react_grid_pin",
@@ -2348,6 +2393,7 @@ Please ensure your username/boardname/[section] or link has media item.\n"
         )
 
     with ThreadPoolExecutor(max_workers=arg_thread_max) as executor:
+
         # Create threads
         futures = {
             executor.submit(
@@ -2405,6 +2451,7 @@ def update_all(
     arg_http_proxy: str,
     arg_cookies: str,
 ):
+
     bk_cwd = os.path.abspath(os.getcwd())
     cwd_component_total = len(PurePath(os.path.abspath(bk_cwd)).parts[:])
     imgs_f = []
@@ -2607,6 +2654,7 @@ def run_library_main(
     arg_http_proxy: str,
     arg_cookies: str,
 ):
+
     # Not feasible update based on latest pin if v/img only
     # , unless download zero size img if video only(vice-versa) which seems not desired.
     if arg_img_only or arg_v_only:
@@ -2999,6 +3047,7 @@ def run_library_main(
 
 
 def run_direct_main():
+
     arg_parser = argparse.ArgumentParser(
         description="Download ALL board/section from "
         + pinterest_logo
@@ -3115,9 +3164,7 @@ def run_direct_main():
     arg_parser.add_argument("-p", "--http-proxy", help="Set proxy for http.")
     try:
         args, remaining = arg_parser.parse_known_args()
-    except (
-        SystemExit
-    ):  # Normal if --help, catch here to avoid main() global ex catch it
+    except SystemExit:  # Normal if --help, catch here to avoid main() global ex catch it
         return
     if remaining:
         return quit(
