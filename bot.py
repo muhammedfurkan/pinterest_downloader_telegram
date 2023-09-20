@@ -164,8 +164,8 @@ async def vid(event):
         await event.reply(
              "**bana komutla beraber link gönder.**\n\n`send me the link with the command.`"
         )
-    except FileNotFoundError:
-        return
+ except FileNotFoundError:
+     return
 
 
 @bot.on(events.NewMessage(pattern="/pimg ?(.*)", func=lambda e: e.is_private))
